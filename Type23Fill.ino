@@ -149,6 +149,8 @@ byte WaitFirstReq()
   byte  PreviousState = HIGH;
 
   pinMode(PIN_C, INPUT);    // make pin input
+  pinMode(PIN_B, INPUT);    // make pin input
+  digitalWrite(PIN_B, HIGH);  // Set pullup 
 
   unsigned long Timeout = millis() + tC;
   while ( millis() <= Timeout )
@@ -181,6 +183,8 @@ byte WaitReq()
 
   pinMode(PIN_C, INPUT);    // make pin input
   pinMode(PIN_B, INPUT);    // make pin input
+  digitalWrite(PIN_C, HIGH);  // Set pullup 
+  digitalWrite(PIN_B, HIGH);  // Set pullup 
 
   while(millis() <= Timeout)  
   {
@@ -223,6 +227,8 @@ byte WaitLastReq()
   {
     byte NewState_C = GetPinLevel(PIN_C);
     byte NewState_B = GetPinLevel(PIN_B);
+    digitalWrite(PIN_C, HIGH);  // Set pullup 
+    digitalWrite(PIN_B, HIGH);  // Set pullup 
 
     if(PreviousState_C != NewState_C)  
     {
@@ -261,7 +267,7 @@ void StartHandshake()
 
   // Drop PIN_D first
   digitalWrite(PIN_D, LOW);
-  delay(tM);
+  //delay(tM);
   // Drop PIN_F after delay
   digitalWrite(PIN_F, LOW);
   delay(tA);    // Pin D pulse width
@@ -586,7 +592,7 @@ byte hopset_cell_1[] =
 
 byte hopset_cell_2[] =
 {
-  0xCC,     // L7, no L8, Last
+  0x8C,     // no L7, L8, Last
   0xCA,     // Net 202
   0x07,     // S1-S4
     0x20,   
@@ -655,7 +661,7 @@ byte hopset_cell_4[] =
 
 byte hopset_cell_5[] =
 {
-  0xAE,     // L8, Last
+  0x8E,     // No L7, L8, Last
   0x2C,     // Net 556
   0x01,     // S1 only
     0x50,   
@@ -678,7 +684,7 @@ byte hopset_cell_5[] =
 
 byte hopset_cell_6[] =
 {
-  0xEE,     // L7, L8, Last
+  0x8E,     // No L7, L8, Last
   0xA6,     // Net 678
   0x0C,     // S1 only
     0xB0,   
@@ -702,7 +708,7 @@ byte hopset_cell_6[] =
 
 byte transec_cell[] =
 {
-  0x00, 
+  0xAA, 
   0x12, 0x22, 0x33, 0x44, 0x55, 0x66, 0x88, 
   0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
   0x12   // CRC
@@ -898,12 +904,12 @@ byte single_channel_cell[] =
 byte TOD_cell[] =
 {
   0x00, 0x02, 
-  0x20, 0x10,   // 2011 - year
-  0x04, 0x27,   // MM DD
-  0x00, 0x13,   // Julian Day
+  0x20, 0x17,   // 2011 - year
+  0x07, 0x30,   // MM DD
+  0x00, 0x43,   // Julian Day
   0x07,         // Hours
   0x07,         // Minutes
-  0x00,         // Seconds
+  0x07,         // Seconds
   0x00,         // mSec
   0x00, 
   0x00, 
@@ -936,12 +942,12 @@ void loop()
   
   
   FullType3Fill();
-  FullType3FillColdStart();
-  FullType1TEK1();
-  FullType1TEK2();
-  FullType1TEK3();
+//  FullType3FillColdStart();
+//  FullType1TEK1();
+//  FullType1TEK2();
+//  FullType1TEK3();
 //  FullType3FillNoTEK();
-  FullType2FillNoTEK();
+//  FullType2FillNoTEK();
   
   while(1)
   {
