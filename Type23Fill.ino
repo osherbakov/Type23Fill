@@ -151,6 +151,7 @@ byte WaitFirstReq()
   pinMode(PIN_C, INPUT);    // make pin input
   pinMode(PIN_B, INPUT);    // make pin input
   digitalWrite(PIN_B, HIGH);  // Set pullup 
+  digitalWrite(PIN_C, HIGH);  // Set pullup 
 
   unsigned long Timeout = millis() + tC;
   while ( millis() <= Timeout )
@@ -708,7 +709,7 @@ byte hopset_cell_6[] =
 
 byte transec_cell[] =
 {
-  0xAA, 
+  0x00, 
   0x12, 0x22, 0x33, 0x44, 0x55, 0x66, 0x88, 
   0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
   0x12   // CRC
@@ -951,95 +952,6 @@ void loop()
   
   while(1)
   {
-  }
-  
-
-  while(1)
-  {
-      AcquireBus();
-      Equipment = 0xFF;
-      while(Equipment == 0xFF)
-      {
-        delay(2000);
-        Serial.println("SendQuery");
-        StartHandshake();
-        SendQuery(MODE3);
-        Equipment = GetEquipmentType();
-        EndHandshake();
-        // Serial.print("EquipmentType = 0x");
-        // Serial.println(Equipment, HEX);
-      }
-  
-      Serial.println("WaitFirstReq");
-      WaitFirstReq();      
-    
-      Serial.println("StartFill");
-      StartFill();
-   
-      Serial.println("Loading");
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-  
-  //    TestCell(no_fill_cell);
-      TestCell(coldstart_cell);
-      TestCell(transec_cell);
-  //    transec_cell[1]++;
-  //    transec_cell[8]++;
-    
-      TestCell(hopset_cell_1);
-      TestCell(transec_cell);
-  //    transec_cell[2]++;
-  //    transec_cell[9]++;
-  
-      TestCell(hopset_cell_2);
-      TestCell(transec_cell);
-  //    transec_cell[3]++;
-  //    transec_cell[10]++;
-  
-      TestCell(hopset_cell_3);
-      TestCell(transec_cell);
-  //    transec_cell[4]++;
-  //    transec_cell[11]++;
-  
-      TestCell(hopset_cell_4);
-      TestCell(transec_cell);
-  //    transec_cell[5]++;
-  //    transec_cell[12]++;
-  
-      TestCell(hopset_cell_5);
-      TestCell(transec_cell);
-  //    transec_cell[6]++;
-  //    transec_cell[13]++;
-  
-      TestCell(hopset_cell_6);
-      TestCell(transec_cell);
-  //    transec_cell[7]++;
-  //    transec_cell[14]++;
-  
-  
-    // Send SingleChannel cells
-  //    TestCell(single_channel_cell);
-  
-    // Send lockout cells
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-  
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestLastCell(no_fill_cell);
-    
-      EndFill();
-      ReleaseBus();
-  
-      Serial.println("Done !!!!");
-      delay(5000);
   }
 }
 
