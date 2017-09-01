@@ -476,9 +476,11 @@ byte TestLastCell(byte *cell)
 }
 
 // Tag values
-const byte NO_FILL = 0x7D;
+const byte NO_FILL_TAG = 0x7D;
 const byte COMSEC_TAG = 0x7D;
 const byte COMSEC_DATA = 0x00;
+const byte COLDSTART_TAG = 0x8C;
+
 
 
 // QUERY bytes
@@ -487,11 +489,12 @@ const byte MODE3  = 0x03;
 
 
 // The cell is filled with NO_FILL tags
-byte no_fill_cell[] =
+byte no_fill_tag_cell[] =
 {
-  NO_FILL, 
-  NO_FILL, NO_FILL, NO_FILL, NO_FILL, NO_FILL, NO_FILL, NO_FILL, 
-  NO_FILL, NO_FILL, NO_FILL, NO_FILL, NO_FILL, NO_FILL, NO_FILL, 
+  NO_FILL_TAG, 
+  NO_FILL_TAG, 
+  NO_FILL_TAG, NO_FILL_TAG, NO_FILL_TAG, NO_FILL_TAG, NO_FILL_TAG, NO_FILL_TAG, 
+  NO_FILL_TAG, NO_FILL_TAG, NO_FILL_TAG, NO_FILL_TAG, NO_FILL_TAG, NO_FILL_TAG, NO_FILL_TAG, 
   0x00  
 };
 
@@ -502,6 +505,14 @@ byte comsec_tag_cell[] =
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
   0x00  //  CRC
+};
+
+byte coldstart_tag_cell[] =
+{
+  COLDSTART_TAG, 
+  0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+  0x00  // CRC
 };
 
 byte comsec_key_cell_1[] =
@@ -552,22 +563,22 @@ byte hopset_cell[] =
 {
   0x8C,     // No L7 L8, Last
   0x80,     // Net 128
-  0x25,     // S1-S4
-    0x6F,   
-    0x1F,   // LO = 40MHz
-    0x32,   // HI = 50Mhz
-  0x07,     // LO Band Type A = MAX
-    0x00, 
+  0x0F,     // S1-S4
+    0x50,   
+    0x00,   // LO = 30MHz
+    0x7D,   // HI = 88Mhz
+  0x0F,     // LO Band Type A = 15
+    0xA0, 
     0x30, 
     
-    0x14, 
+    0x11, 
     0x00, 
     
     0x33, 
-    0x30, 
+    0x00, 
     
-    0x41, 
-    0xC0, 
+    0x45, 
+    0x00, 
   0x00  //CRC
 };
 
@@ -908,7 +919,7 @@ byte single_channel_cell[] =
 byte TOD_cell[] =
 {
   0x00, 0x02, 
-  0x20, 0x17,   // 2011 - year
+  0x20, 0x17,   // 2017 - year
   0x07, 0x30,   // MM DD
   0x00, 0x43,   // Julian Day
   0x07,         // Hours
@@ -922,14 +933,6 @@ byte TOD_cell[] =
 };
 
 
-byte coldstart_cell[] =
-{
-  0x8C, 
-  0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00  // CRC
-};
-
 
 void setup()
 {
@@ -942,16 +945,17 @@ void loop()
 
   Serial.println("**********************************");
 
-//  FillESet1();
+//  ESet1();
   
-  
-  FullType3Fill();
-//  FullType3FillColdStart();
-//  FullType1TEK1();
-//  FullType1TEK2();
-//  FullType1TEK3();
-//  FullType3FillNoTEK();
-//  FullType2FillNoTEK();
+//  Type3TOD();
+  Type3Full();
+//  Transec();
+//  Type3ColdStart();
+//  Type1TEK1();
+//  Type1TEK2();
+//  Type1TEK3();
+//  Type3NoTEK();
+//  Type2NoTEK();
   
   while(1)
   {
@@ -959,9 +963,44 @@ void loop()
 }
 
 
+void Type3TOD()
+{
+    byte Equipment = 0xFF;
+    Serial.println("**********Starting Type3TOD Fill***********");
+    AcquireBus();
+    Equipment = 0xFF;
+    while(Equipment == 0xFF)
+    {
+      delay(2000);
+      Serial.println("SendQuery");
+      StartHandshake();
+      SendQuery(MODE3);
+      Equipment = GetEquipmentType();
+      EndHandshake();
+      // Serial.print("EquipmentType = 0x");
+      // Serial.println(Equipment, HEX);
+    }
+
+    Serial.println("WaitFirstReq");
+    WaitFirstReq();      
+
+    Serial.println("StartFill");
+    StartFill();
+
+    Serial.println("Sending Type3TOD Fill !!!!");
 
 
-void FullType3Fill()
+    TestLastCell(TOD_cell);
+  EndFill();
+  delay(500);
+  ReleaseBus();
+  
+  Serial.println("Type3TOD Done !!!!");
+  delay(8000);
+}
+
+
+void Type3Full()
 {
     byte Equipment = 0xFF;
     Serial.println("**********Starting FullType3 Fill***********");
@@ -1001,16 +1040,16 @@ void FullType3Fill()
     TestCell(comsec_tag_cell);
     TestKeyCell(comsec_key_cell_6);
 
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
 
   // Send Cold Start MAN cells
-//  TestCell(no_fill_cell);
-  TestCell(coldstart_cell);
+//  TestCell(no_fill_tag_cell);
+  TestCell(coldstart_tag_cell);
   TestCell(transec_cell);
 
 // Send hopset and transec cells
@@ -1020,28 +1059,28 @@ void FullType3Fill()
 //    TestCell(hopset_cell_2);
 //    TestCell(lockout_8_50_54_MHz_cell);
 
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
 
 
-    TestCell(hopset_cell_1);
+    TestCell(hopset_cell);
     TestCell(transec_cell_1);
 
-    TestCell(hopset_cell_2);
+    TestCell(hopset_cell);
     TestCell(transec_cell_2);
 
-    TestCell(hopset_cell_3);
+    TestCell(hopset_cell);
     TestCell(transec_cell_3);
 
-    TestCell(hopset_cell_4);
+    TestCell(hopset_cell);
     TestCell(transec_cell_4);
 
-    TestCell(hopset_cell_5);
+    TestCell(hopset_cell);
     TestCell(transec_cell_5);
 
-    TestCell(hopset_cell_6);
+    TestCell(hopset_cell);
     TestCell(transec_cell_6);
 
     TestCell(TOD_cell);
@@ -1052,32 +1091,30 @@ void FullType3Fill()
 //    TestCell(lockout_bitmap_cell);
 //    TestCell(lockout_band_cell_2);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 //    TestCell(lockout_7_50_54_MHz_cell);
 //    TestLastCell(lockout_8_50_54_MHz_cell);
 
-    TestLastCell(no_fill_cell);
+    TestLastCell(no_fill_tag_cell);
   
-  delay(500);
+//  delay(500);
   EndFill();
   delay(500);
   ReleaseBus();
   
   Serial.println("FullType3 Done !!!!");
-  delay(5000);
+  delay(8000);
 }
 
 
-
-
-void FullType3FillNoTEK()
+void Type3NoTEK()
 {
     byte Equipment = 0xFF;
     
@@ -1118,16 +1155,16 @@ void FullType3FillNoTEK()
 //    TestCell(comsec_tag_cell);
 //    TestKeyCell(comsec_key_cell_6);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 
   // Send Cold Start MAN cells
-//  TestCell(no_fill_cell);
-  TestCell(coldstart_cell);
+//  TestCell(no_fill_tag_cell);
+  TestCell(coldstart_tag_cell);
   TestCell(transec_cell);
 
 // Send hopset and transec cells
@@ -1137,10 +1174,10 @@ void FullType3FillNoTEK()
 //    TestCell(hopset_cell_2);
 //    TestCell(lockout_8_50_54_MHz_cell);
 
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
 
 
     TestCell(hopset_cell_1);
@@ -1171,30 +1208,30 @@ void FullType3FillNoTEK()
 //    TestCell(lockout_bitmap_cell);
 //    TestCell(lockout_band_cell_2);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 //    TestCell(lockout_7_50_54_MHz_cell);
 //    TestLastCell(lockout_8_50_54_MHz_cell);
 
-    TestLastCell(no_fill_cell);
+    TestLastCell(no_fill_tag_cell);
   
-  delay(500);
+//  delay(500);
   EndFill();
   delay(500);
   ReleaseBus();
   
   Serial.println("FullType3 No TEK Done !!!!");
-  delay(5000);
+  delay(8000);
 }
 
 
-void FullType3FillColdStart()
+void Type3ColdStart()
 {
     byte Equipment = 0xFF;
     
@@ -1235,16 +1272,16 @@ void FullType3FillColdStart()
     TestCell(comsec_tag_cell);
     TestKeyCell(comsec_key_cell_6);
 
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
 
   // Send Cold Start MAN cells
-//  TestCell(no_fill_cell);
-  TestCell(coldstart_cell);
+//  TestCell(no_fill_tag_cell);
+  TestCell(coldstart_tag_cell);
   TestCell(transec_cell);
 
 // Send hopset and transec cells
@@ -1254,13 +1291,13 @@ void FullType3FillColdStart()
 //    TestCell(hopset_cell_2);
 //    TestCell(lockout_8_50_54_MHz_cell);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 
 
 //    TestCell(hopset_cell_1);
@@ -1291,30 +1328,30 @@ void FullType3FillColdStart()
 //    TestCell(lockout_bitmap_cell);
 //    TestCell(lockout_band_cell_2);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 //    TestCell(lockout_7_50_54_MHz_cell);
 //    TestLastCell(lockout_8_50_54_MHz_cell);
 
-    TestLastCell(no_fill_cell);
+    TestLastCell(no_fill_tag_cell);
   
-  delay(500);
+//  delay(500);
   EndFill();
   delay(500);
   ReleaseBus();
   
   Serial.println("FullType3 ColdStart Done !!!!");
-  delay(5000);
+  delay(8000);
 }
 
 
-void FullType1TEK1()
+void Type1TEK1()
 {
    Serial.println("**********Starting FullType1 TEK1 Fill***********");
    AcquireBusType1();
@@ -1324,7 +1361,7 @@ void FullType1TEK1()
    Serial.println("Sending FullType1 TEK1 Fill !!!!");
 
     TestKeyCell(comsec_key_cell_1);
-    delay(500);
+//    delay(500);
     EndFill();
     delay(500);
     ReleaseBus();
@@ -1334,7 +1371,7 @@ void FullType1TEK1()
     delay(8000);
 }
 
-void FullType1TEK2()
+void Type1TEK2()
 {
    Serial.println("**********Starting FullType1 TEK2 Fill***********");
    AcquireBusType1();
@@ -1344,7 +1381,7 @@ void FullType1TEK2()
    Serial.println("Sending FullType1 TEK2 Fill !!!!");
 
     TestKeyCell(comsec_key_cell_2);
-    delay(500);
+//    delay(500);
     EndFill();
     delay(500);
     ReleaseBus();
@@ -1363,7 +1400,7 @@ void FullType1TEK3()
    Serial.println("Sending FullType1 TEK3 Fill !!!!");
 
     TestKeyCell(comsec_key_cell_3);
-    delay(500);
+//    delay(500);
     EndFill();
     delay(500);
     ReleaseBus();
@@ -1372,7 +1409,7 @@ void FullType1TEK3()
     delay(8000);
 }
 
-void FillESet1()
+void ESet1()
 {
    Serial.println("**********Starting ESet 1 Fill***********");
    AcquireBusType1();
@@ -1384,7 +1421,7 @@ void FillESet1()
     TestCell(hopset_cell);
     TestCell(transec_cell);
 
-    delay(500);
+//    delay(500);
     EndFill();
     delay(500);
     ReleaseBus();
@@ -1393,8 +1430,28 @@ void FillESet1()
     delay(8000);
 }
 
+void Transec()
+{
+   Serial.println("**********Starting Transec ONLY Fill***********");
+   AcquireBusType1();
+   Serial.println("WaitFirstReq");
+   WaitFirstReq();      
 
-void FullType2FillNoTEK()
+   Serial.println("Sending Transec ONLY Fill !!!!");
+
+    TestCell(transec_cell);
+
+//    delay(500);
+    EndFill();
+    delay(500);
+    ReleaseBus();
+    
+    Serial.println("Transec ONLY  Done !!!!");
+    delay(8000);
+}
+
+
+void Type2NoTEK()
 {
     byte Equipment = 0xFF;
     
@@ -1435,17 +1492,17 @@ void FullType2FillNoTEK()
 //    TestCell(comsec_tag_cell);
 //    TestKeyCell(comsec_key_cell_6);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 
   // Send Cold Start MAN cells
-//  TestCell(no_fill_cell);
-  TestCell(coldstart_cell);
+//  TestCell(no_fill_tag_cell);
+  TestCell(coldstart_tag_cell);
   TestCell(transec_cell);
 
 // Send hopset and transec cells
@@ -1455,10 +1512,10 @@ void FullType2FillNoTEK()
 //    TestCell(hopset_cell_2);
 //    TestCell(lockout_8_50_54_MHz_cell);
 
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
-//    TestCell(no_fill_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
 
 
     TestCell(hopset_cell_1);
@@ -1489,20 +1546,20 @@ void FullType2FillNoTEK()
 //    TestCell(lockout_bitmap_cell);
 //    TestCell(lockout_band_cell_2);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
-    TestCell(no_fill_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
 //    TestCell(lockout_7_50_54_MHz_cell);
 //    TestLastCell(lockout_8_50_54_MHz_cell);
 
-    TestLastCell(no_fill_cell);
+    TestLastCell(no_fill_tag_cell);
   
-  delay(500);
+//  delay(500);
   EndFill();
   delay(500);
   ReleaseBus();
