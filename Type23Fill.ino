@@ -224,12 +224,15 @@ byte WaitLastReq()
   byte  Result = 0;
   unsigned long Timeout = millis() + tF;
 
+  pinMode(PIN_C, INPUT);    // make pin input
+  pinMode(PIN_B, INPUT);    // make pin input
+  digitalWrite(PIN_C, HIGH);  // Set pullup 
+  digitalWrite(PIN_B, HIGH);  // Set pullup 
+
   while(millis() <= Timeout)  
   {
     byte NewState_C = GetPinLevel(PIN_C);
     byte NewState_B = GetPinLevel(PIN_B);
-    digitalWrite(PIN_C, HIGH);  // Set pullup 
-    digitalWrite(PIN_B, HIGH);  // Set pullup 
 
     if(PreviousState_C != NewState_C)  
     {
