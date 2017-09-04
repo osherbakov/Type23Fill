@@ -152,6 +152,7 @@ byte WaitFirstReq()
   pinMode(PIN_B, INPUT);    // make pin input
   digitalWrite(PIN_B, HIGH);  // Set pullup 
   digitalWrite(PIN_C, HIGH);  // Set pullup 
+  delayMicroseconds(tK1);    // Satisfy Setup time tK1
 
   unsigned long Timeout = millis() + tC;
   while ( millis() <= Timeout )
@@ -186,7 +187,8 @@ byte WaitReq()
   pinMode(PIN_B, INPUT);    // make pin input
   digitalWrite(PIN_C, HIGH);  // Set pullup 
   digitalWrite(PIN_B, HIGH);  // Set pullup 
-
+  delayMicroseconds(tK1);    // Satisfy Setup time tK1
+  
   while(millis() <= Timeout)  
   {
     byte NewState_C = GetPinLevel(PIN_C);
@@ -209,7 +211,7 @@ byte WaitReq()
       {
         Serial.print("B = ");
         Serial.println(NewState_B, HEX);
-        Result = 1;  // Bad CRC
+        Result = 0;  // Bad CRC
       }
       PreviousState_B = NewState_B;
     }
@@ -228,6 +230,7 @@ byte WaitLastReq()
   pinMode(PIN_B, INPUT);    // make pin input
   digitalWrite(PIN_C, HIGH);  // Set pullup 
   digitalWrite(PIN_B, HIGH);  // Set pullup 
+  delayMicroseconds(tK1);    // Satisfy Setup time tK1
 
   while(millis() <= Timeout)  
   {
@@ -250,7 +253,7 @@ byte WaitLastReq()
       {
         Serial.print("B = ");
         Serial.println(NewState_B, HEX);
-        Result = 1;  // Bad CRC
+        Result = 0;  // Bad CRC
       }
       PreviousState_B = NewState_B;
     }
@@ -562,22 +565,22 @@ byte comsec_key_cell_6[] =
 byte hopset_cell[] =
 {
   0x8C,     // No L7 L8, Last
-  0x80,     // Net 128
-  0x0F,     // S1-S4
-    0x50,   
-    0x00,   // LO = 30MHz
-    0x7D,   // HI = 88Mhz
-  0x0F,     // LO Band Type A = 15
-    0xA0, 
-    0x30, 
-    
-    0x11, 
+  0x6F,     // Net 111
+  0x00,     // S1-S4
+    0x00,   
+    0x80,   // LO = 30MHz
+    0x02,   // HI = 31Mhz
+  0x02,     // LO Band Type A = 2
+    0x00, 
     0x00, 
     
-    0x33, 
+    0x00, 
     0x00, 
     
-    0x45, 
+    0x00, 
+    0x00, 
+    
+    0x00, 
     0x00, 
   0x00  //CRC
 };
@@ -585,138 +588,138 @@ byte hopset_cell[] =
 byte hopset_cell_1[] =
 {
   0x8C,     // No L7 L8, Last
-  0x65,     // Net 101
-  0x06,     // S1-S4
-    0x90,   
-    0x01,   // LO = 40MHz
-    0x32,   // HI = 50Mhz
-  0x07,     // LO Band Type A = MAX
-    0x00, 
-    0x00, 
+  0x01,     // Net 1
+  0x00,     // S1-S4
+    0x00,   
+    0x00,   // LO = 30MHz
+    0x02,   // HI = 30Mhz + F
+  0x07,     // LO Band Type A = 7
+    0x10, 
+    0x03, 
     
-    0x00, 
-    0x00, 
+    0x20, 
+    0x0A, 
     
-    0x00, 
-    0x00, 
+    0x30, 
+    0x10, 
     
-    0x00, 
-    0x00, 
+    0xA0, 
+    0x17, 
   0x00  //CRC
 };
 
 byte hopset_cell_2[] =
 {
   0x8C,     // no L7, L8, Last
-  0xCA,     // Net 202
-  0x07,     // S1-S4
-    0x20,   
-    0x03,   // LO = 50MHz
-    0x4B,   // HI = 60Mhz
-  0x07,     // LO Band Type A = MAX
-    0x00, 
-    0x00, 
+  0x02,     // Net 2
+  0x00,     // S1-S4
+    0x00,   
+    0x00,   // LO = 30MHz
+    0x02,   // HI = 30Mhz + F
+  0x07,     // LO Band Type A = 7
+    0x10, 
+    0x05, 
     
-    0x00, 
-    0x00, 
+    0x10, 
+    0x10, 
     
-    0x00, 
-    0x00, 
+    0x10, 
+    0x18, 
     
-    0x00, 
-    0x00, 
+    0x10, 
+    0x1F, 
   0x00  //CRC
 };
 
 byte hopset_cell_3[] =
 {
-  0x8D,     // No L7 L8, Last
-  0x2F,     // Net 303
-  0x02,     // S1-S4
-    0xB0,   
-    0x04,   // LO = 60MHz
-    0x64,   // HI = 70Mhz
-  0x12,     // LO Band Type A = MAX
-    0x00, 
-    0x06, 
+  0x8C,     // No L7 L8, Last
+  0x03,     // Net 3
+  0x00,     // S1-S4
+    0x00,   
+    0x00,   // LO = 30MHz
+    0x02,   // HI = 30Mhz + F
+  0x04,     // LO Band Type A = 4
+    0x10, 
+    0x05, 
+    
+    0xA0, 
+    0x10, 
     
     0x00, 
-    0x00, 
+    0x18, 
     
-    0x00, 
-    0x00, 
-    
-    0x00, 
-    0x00, 
+    0xC0, 
+    0x1F, 
   0x00  //CRC
 };
 
 byte hopset_cell_4[] =
 {
-  0x8D,     // No L7 L8, Last
-  0x94,     // Net 404
-  0x0F,     // S1-S4
-    0x40,   
-    0x06,   // LO = 70MHz
-    0x7D,   // HI = 80Mhz
-  0x0F,     // LO Band Type A = MAX
-    0x00, 
-    0x00, 
+  0x8C,     // No L7 L8, Last
+  0x04,     // Net 4
+  0x00,     // S1-S4
+    0x00,   
+    0x00,   // LO = 30MHz
+    0x02,   // HI = 30Mhz + F
+  0x02,     // LO Band Type A = 2
+    0x20, 
+    0x05, 
     
-    0x00, 
-    0x0F, 
+    0x30, 
+    0x10, 
     
-    0x00, 
-    0x00, 
+    0xA0, 
+    0x14, 
     
-    0x00, 
-    0x00, 
+    0xA0, 
+    0x1C, 
   0x00  //CRC
 };
 
 byte hopset_cell_5[] =
 {
-  0x8E,     // No L7, L8, Last
-  0x2C,     // Net 556
-  0x01,     // S1 only
-    0x50,   
-    0x00,   // LO = 32MHz
-    0x1E,   // HI = 42Mhz
-  0x28,     // LO Band Type A = 1 MHz
-    0x00, 
-    0x00, 
+  0x8C,     // No L7 L8, Last
+  0x05,     // Net 5
+  0x00,     // S1-S4
+    0x00,   
+    0x00,   // LO = 30MHz
+    0x02,   // HI = 30Mhz + F
+  0x05,     // LO Band Type A = 5
+    0x10, 
+    0x01, 
     
-    0x00, 
-    0x00, 
+    0x10, 
+    0x10, 
     
-    0x00, 
-    0x00, 
+    0x30, 
+    0x18, 
     
-    0x00, 
-    0x00, 
+    0x10, 
+    0x1E, 
   0x00  //CRC
 };
 
 byte hopset_cell_6[] =
 {
-  0x8E,     // No L7, L8, Last
-  0xA6,     // Net 678
-  0x0C,     // S1 only
-    0xB0,   
-    0x04,   // LO = 60MHz
-    0x7D,   // HI = 87Mhz
-  0x22,     // LO Band Type A = MAX
-    0x00, 
-    0x00, 
+  0x8C,     // No L7 L8, Last
+  0x06,     // Net 6
+  0x00,     // S1-S4
+    0x00,   
+    0x00,   // LO = 30MHz
+    0x02,   // HI = 30Mhz + F
+  0x04,     // LO Band Type A = 4
+    0x10, 
+    0x08, 
     
-    0x00, 
-    0x00, 
+    0x10, 
+    0x12, 
     
-    0x00, 
-    0x00, 
+    0x10, 
+    0x18, 
     
-    0x00, 
-    0x00, 
+    0x10, 
+    0x19, 
   0x00  //CRC
 };
 
@@ -724,8 +727,8 @@ byte hopset_cell_6[] =
 byte transec_cell[] =
 {
   0x00, 
-  0x12, 0x22, 0x33, 0x44, 0x55, 0x66, 0x88, 
-  0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
+  0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x88, 
+  0x11, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xDD, 
   0x12   // CRC
 };
 
@@ -740,39 +743,39 @@ byte transec_cell_1[] =
 byte transec_cell_2[] =
 {
   0x22, 
-  0x12, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
-  0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
+  0x22, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
+  0x26, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
   0x12   // CRC
 };
 
 byte transec_cell_3[] =
 {
   0x33, 
-  0x12, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
-  0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
+  0x32, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
+  0x36, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
   0x12   // CRC
 };
 
 byte transec_cell_4[] =
 {
   0x44, 
-  0x12, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
-  0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
+  0x42, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
+  0x46, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
   0x12   // CRC
 };
 
 byte transec_cell_5[] =
 {
   0x55, 
-  0x12, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
-  0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
+  0x52, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
+  0x56, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
   0x12   // CRC
 };
 
 byte transec_cell_6[] =
 {
   0x66, 
-  0x12, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
+  0x62, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
   0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
   0x12   // CRC
 };
@@ -948,7 +951,8 @@ void loop()
 //  ESet1();
   
 //  Type3TOD();
-  Type3Full();
+//  Type3Full();
+  Type3NoTEK();
 //  Transec();
 //  Type3ColdStart();
 //  Type1TEK1();
@@ -1065,22 +1069,22 @@ void Type3Full()
 //    TestCell(no_fill_tag_cell);
 
 
-    TestCell(hopset_cell);
+    TestCell(hopset_cell_1);
     TestCell(transec_cell_1);
 
-    TestCell(hopset_cell);
+    TestCell(hopset_cell_2);
     TestCell(transec_cell_2);
 
-    TestCell(hopset_cell);
+    TestCell(hopset_cell_3);
     TestCell(transec_cell_3);
 
-    TestCell(hopset_cell);
+    TestCell(hopset_cell_4);
     TestCell(transec_cell_4);
 
-    TestCell(hopset_cell);
+    TestCell(hopset_cell_5);
     TestCell(transec_cell_5);
 
-    TestCell(hopset_cell);
+    TestCell(hopset_cell_6);
     TestCell(transec_cell_6);
 
     TestCell(TOD_cell);
