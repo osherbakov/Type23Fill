@@ -99,6 +99,8 @@ void SendQuery(byte Data)
 
 void SendByte(byte Data)
 {
+  pinMode(PIN_D, OUTPUT);    // make a pin active
+  pinMode(PIN_E, OUTPUT);    // make a pin active
   for(byte i = 0; i < 8; i++)
   {
     digitalWrite(PIN_D, (Data & 0x01) ? LOW : HIGH);  // Output data bit
@@ -121,6 +123,9 @@ void SendCell(byte *p_cell)
 
 byte GetEquipmentType()
 {
+  digitalWrite(PIN_E, HIGH);      // Turn_on the pullup register
+  pinMode(PIN_E, INPUT_PULLUP);   // make a pin input with pullup
+  
   byte  PreviousState = LOW;
   unsigned long Timeout = millis() + tB;
   byte i = 0;
@@ -148,9 +153,10 @@ byte WaitFirstReq()
 {
   byte  PreviousState = HIGH;
 
-  pinMode(PIN_C, INPUT);    // make pin input
-  pinMode(PIN_B, INPUT);    // make pin input
   digitalWrite(PIN_B, HIGH);  // Set pullup 
+  digitalWrite(PIN_C, HIGH);  // Set pullup 
+  pinMode(PIN_C, INPUT_PULLUP);    // make pin input
+  pinMode(PIN_B, INPUT_PULLUP);    // make pin input
 
   unsigned long Timeout = millis() + tC;
   while ( millis() <= Timeout )
@@ -181,10 +187,10 @@ byte WaitReq()
   byte  Result = 0;
   unsigned long Timeout = millis() + tF;
 
-  pinMode(PIN_C, INPUT);    // make pin input
-  pinMode(PIN_B, INPUT);    // make pin input
   digitalWrite(PIN_C, HIGH);  // Set pullup 
   digitalWrite(PIN_B, HIGH);  // Set pullup 
+  pinMode(PIN_C, INPUT_PULLUP);    // make pin input
+  pinMode(PIN_B, INPUT_PULLUP);    // make pin input
 
   while(millis() <= Timeout)  
   {
@@ -223,12 +229,15 @@ byte WaitLastReq()
   byte  Result = 0;
   unsigned long Timeout = millis() + tF;
 
+  digitalWrite(PIN_B, HIGH);  // Set pullup 
+  digitalWrite(PIN_C, HIGH);  // Set pullup 
+  pinMode(PIN_C, INPUT_PULLUP);    // make pin input
+  pinMode(PIN_B, INPUT_PULLUP);    // make pin input
+
   while(millis() <= Timeout)  
   {
     byte NewState_C = GetPinLevel(PIN_C);
     byte NewState_B = GetPinLevel(PIN_B);
-    digitalWrite(PIN_C, HIGH);  // Set pullup 
-    digitalWrite(PIN_B, HIGH);  // Set pullup 
 
     if(PreviousState_C != NewState_C)  
     {
@@ -257,9 +266,13 @@ byte WaitLastReq()
 
 void StartHandshake()
 {
+  pinMode(PIN_B, INPUT_PULLUP);
+  pinMode(PIN_C, INPUT_PULLUP);
   pinMode(PIN_D, OUTPUT);
   pinMode(PIN_E, OUTPUT);
   pinMode(PIN_F, OUTPUT);
+  digitalWrite(PIN_B, HIGH);
+  digitalWrite(PIN_C, HIGH);
   digitalWrite(PIN_D, HIGH);
   digitalWrite(PIN_E, HIGH);
   digitalWrite(PIN_F, HIGH);
@@ -277,26 +290,26 @@ void StartHandshake()
 
 void EndHandshake()
 {
-  pinMode(PIN_B, INPUT);
-  pinMode(PIN_C, INPUT);
-  pinMode(PIN_D, OUTPUT);
-  pinMode(PIN_E, OUTPUT);
   digitalWrite(PIN_B, HIGH);
   digitalWrite(PIN_C, HIGH);
   digitalWrite(PIN_D, HIGH);
   digitalWrite(PIN_E, HIGH);
+  pinMode(PIN_B, INPUT_PULLUP);
+  pinMode(PIN_C, INPUT_PULLUP);
+  pinMode(PIN_D, OUTPUT);
+  pinMode(PIN_E, OUTPUT);
 }
 
 void StartFill()
 {
-  pinMode(PIN_B, INPUT);
-  pinMode(PIN_C, INPUT);
-  pinMode(PIN_D, OUTPUT);
-  pinMode(PIN_E, OUTPUT);
   digitalWrite(PIN_B, HIGH);
   digitalWrite(PIN_C, HIGH);
   digitalWrite(PIN_D, HIGH);
   digitalWrite(PIN_E, HIGH);
+  pinMode(PIN_B, INPUT_PULLUP);
+  pinMode(PIN_C, INPUT_PULLUP);
+  pinMode(PIN_D, OUTPUT);
+  pinMode(PIN_E, OUTPUT);
 }
 
 void  EndFill()
@@ -314,8 +327,8 @@ void AcquireBus()
   digitalWrite(PIN_D, HIGH);
   digitalWrite(PIN_E, HIGH);
   digitalWrite(PIN_F, HIGH);
-  pinMode(PIN_B, INPUT);
-  pinMode(PIN_C, INPUT);
+  pinMode(PIN_B, INPUT_PULLUP);
+  pinMode(PIN_C, INPUT_PULLUP);
   pinMode(PIN_D, OUTPUT);
   pinMode(PIN_E, OUTPUT);
   pinMode(PIN_F, OUTPUT);
@@ -331,7 +344,7 @@ void AcquireBusType1()
   digitalWrite(PIN_F, HIGH);
 
   pinMode(PIN_B, OUTPUT);
-  pinMode(PIN_C, INPUT);
+  pinMode(PIN_C, INPUT_PULLUP);
   pinMode(PIN_D, OUTPUT);
   pinMode(PIN_E, OUTPUT);
   pinMode(PIN_F, INPUT);
@@ -341,11 +354,11 @@ void AcquireBusType1()
 
 void ReleaseBus()
 {
-  pinMode(PIN_B, INPUT);
-  pinMode(PIN_C, INPUT);
-  pinMode(PIN_D, INPUT);
-  pinMode(PIN_E, INPUT);
-  pinMode(PIN_F, INPUT);
+  pinMode(PIN_B, INPUT_PULLUP);
+  pinMode(PIN_C, INPUT_PULLUP);
+  pinMode(PIN_D, INPUT_PULLUP);
+  pinMode(PIN_E, INPUT_PULLUP);
+  pinMode(PIN_F, INPUT_PULLUP);
   delay(tB);
   digitalWrite(PIN_B, HIGH);
   digitalWrite(PIN_C, HIGH);
@@ -717,48 +730,48 @@ byte transec_cell[] =
 byte transec_cell_1[] =
 {
   0x11, 
-  0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
-  0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 
+  0x34, 0xDE, 0x30, 0x64, 0x65, 0xFF, 0x8F, 
+  0x66, 0x7D, 0x38, 0x99, 0x4A, 0xEB, 0xE1, 
   0x12   // CRC
 };
 
 byte transec_cell_2[] =
 {
   0x22, 
-  0x22, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
-  0x66, 0x77, 0x11, 0x99, 0xAA, 0xBB, 0xCC, 
+  0xA2, 0x22, 0x3D, 0x21, 0x00, 0x00, 0x12, 
+  0x66, 0x78, 0x17, 0x79, 0xA4, 0xFB, 0x32, 
   0x12   // CRC
 };
 
 byte transec_cell_3[] =
 {
   0x33, 
-  0x33, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
-  0x66, 0x77, 0x22, 0x99, 0xAA, 0xBB, 0xCC, 
+  0x3F, 0x02, 0x00, 0xFF, 0x35, 0x56, 0x79, 
+  0x16, 0x7D, 0x32, 0xF9, 0x29, 0x00, 0xF1, 
   0x12   // CRC
 };
 
 byte transec_cell_4[] =
 {
   0x44, 
-  0x44, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
-  0x66, 0x77, 0x33, 0x99, 0xAA, 0xBB, 0xCC, 
+  0xA2, 0x22, 0x3D, 0x21, 0x00, 0x00, 0x12, 
+  0x3F, 0x02, 0x00, 0xFF, 0x35, 0x56, 0x79, 
   0x12   // CRC
 };
 
 byte transec_cell_5[] =
 {
   0x55, 
-  0x44, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
-  0x66, 0x77, 0x44, 0x99, 0xAA, 0xBB, 0xCC, 
+  0x66, 0x78, 0x17, 0x79, 0xA4, 0xFB, 0x32, 
+  0x16, 0x7D, 0x32, 0xF9, 0x29, 0x00, 0xF1, 
   0x12   // CRC
 };
 
 byte transec_cell_6[] =
 {
   0x66, 
-  0x66, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 
-  0x66, 0x77, 0x55, 0x99, 0xAA, 0xBB, 0xCC, 
+  0x34, 0xDE, 0x30, 0x64, 0x65, 0xFF, 0x8F, 
+  0x6D, 0x17, 0xAA, 0x32, 0x50, 0x00, 0x21, 
   0x12   // CRC
 };
 
@@ -946,100 +959,11 @@ void loop()
 //  FullType1TEK1();
 //  FullType1TEK2();
 //  FullType1TEK3();
-//  FullType3FillNoTEK();
-  FullType2FillNoTEK();
+  FullType3FillNoTEK();
+//  FullType2FillNoTEK();
   
   while(1)
   {
-  }
-  
-
-  while(1)
-  {
-      AcquireBus();
-      Equipment = 0xFF;
-      while(Equipment == 0xFF)
-      {
-        delay(2000);
-        Serial.println("SendQuery");
-        StartHandshake();
-        SendQuery(MODE3);
-        Equipment = GetEquipmentType();
-        EndHandshake();
-        // Serial.print("EquipmentType = 0x");
-        // Serial.println(Equipment, HEX);
-      }
-  
-      Serial.println("WaitFirstReq");
-      WaitFirstReq();      
-    
-      Serial.println("StartFill");
-      StartFill();
-   
-      Serial.println("Loading");
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-  
-  //    TestCell(no_fill_cell);
-      TestCell(coldstart_cell);
-      TestCell(transec_cell);
-  //    transec_cell[1]++;
-  //    transec_cell[8]++;
-    
-      TestCell(hopset_cell_1);
-      TestCell(transec_cell);
-  //    transec_cell[2]++;
-  //    transec_cell[9]++;
-  
-      TestCell(hopset_cell_2);
-      TestCell(transec_cell);
-  //    transec_cell[3]++;
-  //    transec_cell[10]++;
-  
-      TestCell(hopset_cell_3);
-      TestCell(transec_cell);
-  //    transec_cell[4]++;
-  //    transec_cell[11]++;
-  
-      TestCell(hopset_cell_4);
-      TestCell(transec_cell);
-  //    transec_cell[5]++;
-  //    transec_cell[12]++;
-  
-      TestCell(hopset_cell_5);
-      TestCell(transec_cell);
-  //    transec_cell[6]++;
-  //    transec_cell[13]++;
-  
-      TestCell(hopset_cell_6);
-      TestCell(transec_cell);
-  //    transec_cell[7]++;
-  //    transec_cell[14]++;
-  
-  
-    // Send SingleChannel cells
-  //    TestCell(single_channel_cell);
-  
-    // Send lockout cells
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-  
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestCell(no_fill_cell);
-      TestLastCell(no_fill_cell);
-    
-      EndFill();
-      ReleaseBus();
-  
-      Serial.println("Done !!!!");
-      delay(5000);
   }
 }
 
@@ -1099,17 +1023,11 @@ void FullType3Fill()
   TestCell(transec_cell);
 
 // Send hopset and transec cells
-//    TestCell(hopset_cell_1);
-//    TestCell(lockout_8_50_54_MHz_cell);
-
-//    TestCell(hopset_cell_2);
-//    TestCell(lockout_8_50_54_MHz_cell);
 
 //    TestCell(no_fill_cell);
 //    TestCell(no_fill_cell);
 //    TestCell(no_fill_cell);
 //    TestCell(no_fill_cell);
-
 
     TestCell(hopset_cell_1);
     TestCell(transec_cell_1);
@@ -1145,9 +1063,6 @@ void FullType3Fill()
     TestCell(no_fill_cell);
     TestCell(no_fill_cell);
     TestCell(no_fill_cell);
-//    TestCell(lockout_7_50_54_MHz_cell);
-//    TestLastCell(lockout_8_50_54_MHz_cell);
-
     TestLastCell(no_fill_cell);
   
   delay(500);
@@ -1252,10 +1167,6 @@ void FullType3FillNoTEK()
   
 
   // Send lockout cells
-//    TestCell(lockout_band_cell);
-//    TestCell(lockout_bitmap_cell);
-//    TestCell(lockout_band_cell_2);
-
     TestCell(no_fill_cell);
     TestCell(no_fill_cell);
     TestCell(no_fill_cell);
@@ -1264,9 +1175,6 @@ void FullType3FillNoTEK()
     TestCell(no_fill_cell);
     TestCell(no_fill_cell);
     TestCell(no_fill_cell);
-//    TestCell(lockout_7_50_54_MHz_cell);
-//    TestLastCell(lockout_8_50_54_MHz_cell);
-
     TestLastCell(no_fill_cell);
   
   delay(500);
