@@ -101,6 +101,7 @@ void SendByte(byte Data)
 {
   pinMode(PIN_D, OUTPUT);    // make a pin active
   pinMode(PIN_E, OUTPUT);    // make a pin active
+ digitalWrite(PIN_E, HIGH);  // Bring Clock to HIGH
   for(byte i = 0; i < 8; i++)
   {
     digitalWrite(PIN_D, (Data & 0x01) ? LOW : HIGH);  // Output data bit
@@ -337,7 +338,7 @@ void AcquireBus()
 
 void AcquireBusType1()
 {
-  digitalWrite(PIN_B, HIGH);
+  digitalWrite(PIN_B, LOW);
   digitalWrite(PIN_C, HIGH);
   digitalWrite(PIN_D, HIGH);
   digitalWrite(PIN_E, HIGH);
@@ -448,6 +449,26 @@ byte TestCell(byte *cell)
       Serial.println("Timeout");
       return Result;
     }
+  }
+  return Result;
+}
+
+byte TestAnyCell(byte *cell)
+{
+  byte Result = 0;
+
+  PrintCell(cell); 
+  SendCell(cell);
+  Result = WaitLastReq();    
+  if( Result == 0)
+  {
+      return 0;   // Good CRC
+  }else if(Result == 1){
+      // Bad CRC
+      Serial.println("Bad CRC?");
+  }else{  
+      // Timeout or other things
+      Serial.println("Timeout");
   }
   return Result;
 }
@@ -719,6 +740,14 @@ byte hopset_cell_6[] =
 };
 
 
+byte test_cell[] =
+{
+  0x00, 
+  0x02, 0x20, 0x17, 0x08, 0x25, 0x01, 0x43, 
+  0x11, 0x22, 0x33, 0x00, 0x00, 0x00, 0x00, 
+  0x12   // CRC
+};
+
 byte transec_cell[] =
 {
   0xAA, 
@@ -952,14 +981,15 @@ void loop()
   Serial.println("**********************************");
 
 //  FillESet1();
+//  FillTSK1();
   
   
 //  FullType3Fill();
 //  FullType3FillColdStart();
-//  FullType1TEK1();
+  FullType1TEK1();
 //  FullType1TEK2();
 //  FullType1TEK3();
-  FullType3FillNoTEK();
+//  FullType3FillNoTEK();
 //  FullType2FillNoTEK();
   
   while(1)
@@ -1383,6 +1413,31 @@ void FillESet1()
     ReleaseBus();
     
     Serial.println("ESet 1 Done !!!!");
+    delay(8000);
+}
+
+void FillTSK1()
+{
+    Serial.println("**********Starting FillTSK 1 Fill***********");
+    AcquireBusType1();
+    Serial.println("WaitFirstReq");
+
+//    TestCell(hopset_cell);
+    for(int i = 0x30; i < 256; i++)
+    {
+      WaitFirstReq();      
+      Serial.println("Sending FillTSK 1 Fill !!!!");
+      test_cell[15] = 0x30;
+      TestAnyCell(test_cell);
+      test_cell[15] = i;
+      TestAnyCell(test_cell);
+      delay(500);
+      EndFill();
+    }
+    delay(500);
+    ReleaseBus();
+    
+    Serial.println("FillTSK 1 Done !!!!");
     delay(8000);
 }
 
