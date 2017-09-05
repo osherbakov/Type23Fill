@@ -99,6 +99,9 @@ void SendQuery(byte Data)
 
 void SendByte(byte Data)
 {
+  pinMode(PIN_D, OUTPUT);    // make a pin active
+  pinMode(PIN_E, OUTPUT);    // make a pin active
+  digitalWrite(PIN_E, HIGH);  // Bring Clock to HIGH
   for(byte i = 0; i < 8; i++)
   {
     digitalWrite(PIN_D, (Data & 0x01) ? LOW : HIGH);  // Output data bit
@@ -121,6 +124,8 @@ void SendCell(byte *p_cell)
 
 byte GetEquipmentType()
 {
+  digitalWrite(PIN_E, HIGH);      // Turn_on the pullup register
+  pinMode(PIN_E, INPUT_PULLUP);   // make a pin input with pullup
   byte  PreviousState = LOW;
   unsigned long Timeout = millis() + tB;
   byte i = 0;
@@ -148,10 +153,10 @@ byte WaitFirstReq()
 {
   byte  PreviousState = HIGH;
 
-  pinMode(PIN_C, INPUT);    // make pin input
-  pinMode(PIN_B, INPUT);    // make pin input
   digitalWrite(PIN_B, HIGH);  // Set pullup 
   digitalWrite(PIN_C, HIGH);  // Set pullup 
+  pinMode(PIN_C, INPUT_PULLUP);    // make pin input
+  pinMode(PIN_B, INPUT_PULLUP);    // make pin input
   delayMicroseconds(tK1);    // Satisfy Setup time tK1
 
   unsigned long Timeout = millis() + tC;
@@ -183,10 +188,10 @@ byte WaitReq()
   byte  Result = 0;
   unsigned long Timeout = millis() + tF;
 
-  pinMode(PIN_C, INPUT);    // make pin input
-  pinMode(PIN_B, INPUT);    // make pin input
   digitalWrite(PIN_C, HIGH);  // Set pullup 
   digitalWrite(PIN_B, HIGH);  // Set pullup 
+  pinMode(PIN_C, INPUT_PULLUP);    // make pin input
+  pinMode(PIN_B, INPUT_PULLUP);    // make pin input
   delayMicroseconds(tK1);    // Satisfy Setup time tK1
   
   while(millis() <= Timeout)  
@@ -226,10 +231,10 @@ byte WaitLastReq()
   byte  Result = 0;
   unsigned long Timeout = millis() + tF;
 
-  pinMode(PIN_C, INPUT);    // make pin input
-  pinMode(PIN_B, INPUT);    // make pin input
   digitalWrite(PIN_C, HIGH);  // Set pullup 
   digitalWrite(PIN_B, HIGH);  // Set pullup 
+  pinMode(PIN_C, INPUT_PULLUP);    // make pin input
+  pinMode(PIN_B, INPUT_PULLUP);    // make pin input
   delayMicroseconds(tK1);    // Satisfy Setup time tK1
 
   while(millis() <= Timeout)  
@@ -264,9 +269,13 @@ byte WaitLastReq()
 
 void StartHandshake()
 {
+  pinMode(PIN_B, INPUT_PULLUP);
+  pinMode(PIN_C, INPUT_PULLUP);
   pinMode(PIN_D, OUTPUT);
   pinMode(PIN_E, OUTPUT);
   pinMode(PIN_F, OUTPUT);
+  digitalWrite(PIN_B, HIGH);
+  digitalWrite(PIN_C, HIGH);
   digitalWrite(PIN_D, HIGH);
   digitalWrite(PIN_E, HIGH);
   digitalWrite(PIN_F, HIGH);
@@ -284,26 +293,26 @@ void StartHandshake()
 
 void EndHandshake()
 {
-  pinMode(PIN_B, INPUT);
-  pinMode(PIN_C, INPUT);
-  pinMode(PIN_D, OUTPUT);
-  pinMode(PIN_E, OUTPUT);
   digitalWrite(PIN_B, HIGH);
   digitalWrite(PIN_C, HIGH);
   digitalWrite(PIN_D, HIGH);
   digitalWrite(PIN_E, HIGH);
+  pinMode(PIN_B, INPUT_PULLUP);
+  pinMode(PIN_C, INPUT_PULLUP);
+  pinMode(PIN_D, OUTPUT);
+  pinMode(PIN_E, OUTPUT);
 }
 
 void StartFill()
 {
-  pinMode(PIN_B, INPUT);
-  pinMode(PIN_C, INPUT);
-  pinMode(PIN_D, OUTPUT);
-  pinMode(PIN_E, OUTPUT);
   digitalWrite(PIN_B, HIGH);
   digitalWrite(PIN_C, HIGH);
   digitalWrite(PIN_D, HIGH);
   digitalWrite(PIN_E, HIGH);
+  pinMode(PIN_B, INPUT_PULLUP);
+  pinMode(PIN_C, INPUT_PULLUP);
+  pinMode(PIN_D, OUTPUT);
+  pinMode(PIN_E, OUTPUT);
 }
 
 void  EndFill()
@@ -321,8 +330,8 @@ void AcquireBus()
   digitalWrite(PIN_D, HIGH);
   digitalWrite(PIN_E, HIGH);
   digitalWrite(PIN_F, HIGH);
-  pinMode(PIN_B, INPUT);
-  pinMode(PIN_C, INPUT);
+  pinMode(PIN_B, INPUT_PULLUP);
+  pinMode(PIN_C, INPUT_PULLUP);
   pinMode(PIN_D, OUTPUT);
   pinMode(PIN_E, OUTPUT);
   pinMode(PIN_F, OUTPUT);
@@ -331,14 +340,14 @@ void AcquireBus()
 
 void AcquireBusType1()
 {
-  digitalWrite(PIN_B, HIGH);
+  digitalWrite(PIN_B, LOW);
   digitalWrite(PIN_C, HIGH);
   digitalWrite(PIN_D, HIGH);
   digitalWrite(PIN_E, HIGH);
   digitalWrite(PIN_F, HIGH);
 
   pinMode(PIN_B, OUTPUT);
-  pinMode(PIN_C, INPUT);
+  pinMode(PIN_C, INPUT_PULLUP);
   pinMode(PIN_D, OUTPUT);
   pinMode(PIN_E, OUTPUT);
   pinMode(PIN_F, INPUT);
@@ -348,11 +357,11 @@ void AcquireBusType1()
 
 void ReleaseBus()
 {
-  pinMode(PIN_B, INPUT);
-  pinMode(PIN_C, INPUT);
-  pinMode(PIN_D, INPUT);
-  pinMode(PIN_E, INPUT);
-  pinMode(PIN_F, INPUT);
+  pinMode(PIN_B, INPUT_PULLUP);
+  pinMode(PIN_C, INPUT_PULLUP);
+  pinMode(PIN_D, INPUT_PULLUP);
+  pinMode(PIN_E, INPUT_PULLUP);
+  pinMode(PIN_F, INPUT_PULLUP);
   delay(tB);
   digitalWrite(PIN_B, HIGH);
   digitalWrite(PIN_C, HIGH);
@@ -1114,7 +1123,7 @@ void Type3Full()
   ReleaseBus();
   
   Serial.println("FullType3 Done !!!!");
-  delay(8000);
+  delay(5000);
 }
 
 
