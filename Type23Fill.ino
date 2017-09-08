@@ -91,8 +91,8 @@ void SendQuery(byte Data)
   delayMicroseconds(tK2 - tT);  // Wait there
   
   // Release PIN_B and PIN_E - the Radio will drive it
-  pinMode(PIN_B, INPUT);    // Tristate the pin
-  pinMode(PIN_E, INPUT);    // Tristate the pin
+  pinMode(PIN_B, INPUT_PULLUP);    // Tristate the pin
+  pinMode(PIN_E, INPUT_PULLUP);    // Tristate the pin
   digitalWrite(PIN_B, HIGH);  // Turn on 20 K Pullup
   digitalWrite(PIN_E, HIGH);  // Turn on 20 K Pullup
 }
@@ -323,7 +323,7 @@ void  EndFill()
 }
 
 
-void AcquireBus()
+void AcquireBusType23()
 {
   digitalWrite(PIN_B, HIGH);
   digitalWrite(PIN_C, HIGH);
@@ -980,7 +980,7 @@ void Type3TOD()
 {
     byte Equipment = 0xFF;
     Serial.println("**********Starting Type3TOD Fill***********");
-    AcquireBus();
+    AcquireBusType23();
     Equipment = 0xFF;
     while(Equipment == 0xFF)
     {
@@ -1017,7 +1017,7 @@ void Type3Full()
 {
     byte Equipment = 0xFF;
     Serial.println("**********Starting FullType3 Fill***********");
-    AcquireBus();
+    AcquireBusType23();
     Equipment = 0xFF;
     while(Equipment == 0xFF)
     {
@@ -1132,7 +1132,7 @@ void Type3NoTEK()
     byte Equipment = 0xFF;
     
     Serial.println("**********Starting FullType3 No TEK Fill***********");
-    AcquireBus();
+    AcquireBusType23();
     Equipment = 0xFF;
     while(Equipment == 0xFF)
     {
@@ -1249,7 +1249,7 @@ void Type3ColdStart()
     byte Equipment = 0xFF;
     
     Serial.println("**********Starting FullType3 ColdStart Fill***********");
-    AcquireBus();
+    AcquireBusType23();
     Equipment = 0xFF;
     while(Equipment == 0xFF)
     {
@@ -1469,7 +1469,7 @@ void Type2NoTEK()
     byte Equipment = 0xFF;
     
     Serial.println("**********Starting FullType2 No TEK Fill***********");
-    AcquireBus();
+    AcquireBusType23();
     Equipment = 0xFF;
     while(Equipment == 0xFF)
     {
