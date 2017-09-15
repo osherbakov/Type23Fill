@@ -153,10 +153,10 @@ byte WaitFirstReq()
 {
   byte  PreviousState = HIGH;
 
-  digitalWrite(PIN_B, HIGH);  // Set pullup 
-  digitalWrite(PIN_C, HIGH);  // Set pullup 
   pinMode(PIN_C, INPUT_PULLUP);    // make pin input
   pinMode(PIN_B, INPUT_PULLUP);    // make pin input
+  digitalWrite(PIN_B, HIGH);  // Set pullup 
+  digitalWrite(PIN_C, HIGH);  // Set pullup 
   delayMicroseconds(tK1);    // Satisfy Setup time tK1
 
   unsigned long Timeout = millis() + tC;
@@ -188,10 +188,10 @@ byte WaitReq()
   byte  Result = 0;
   unsigned long Timeout = millis() + tF;
 
-  digitalWrite(PIN_C, HIGH);  // Set pullup 
-  digitalWrite(PIN_B, HIGH);  // Set pullup 
   pinMode(PIN_C, INPUT_PULLUP);    // make pin input
   pinMode(PIN_B, INPUT_PULLUP);    // make pin input
+  digitalWrite(PIN_C, HIGH);  // Set pullup 
+  digitalWrite(PIN_B, HIGH);  // Set pullup 
   delayMicroseconds(tK1);    // Satisfy Setup time tK1
   
   while(millis() <= Timeout)  
@@ -231,10 +231,10 @@ byte WaitLastReq()
   byte  Result = 0;
   unsigned long Timeout = millis() + tF;
 
-  digitalWrite(PIN_C, HIGH);  // Set pullup 
-  digitalWrite(PIN_B, HIGH);  // Set pullup 
   pinMode(PIN_C, INPUT_PULLUP);    // make pin input
   pinMode(PIN_B, INPUT_PULLUP);    // make pin input
+  digitalWrite(PIN_C, HIGH);  // Set pullup 
+  digitalWrite(PIN_B, HIGH);  // Set pullup 
   delayMicroseconds(tK1);    // Satisfy Setup time tK1
 
   while(millis() <= Timeout)  
@@ -499,6 +499,9 @@ const byte COLDSTART_TAG = 0x8C;
 const byte MODE2  = 0x02;
 const byte MODE3  = 0x03;
 
+//
+//  Cells that specify (tag) what type of the cell will follow
+//
 
 // The cell is filled with NO_FILL tags
 byte no_fill_tag_cell[] =
@@ -571,8 +574,8 @@ byte hopset_cell_111[] =
   0x6F,     // Net 111
   0x00,     // S1-S4    - No screen
     0x00,   
-    0x00,   // LO = 30MHz
-    0x91,   // HI = 88Mhz
+    0xF0,   // LO = 30MHz
+    0x90,   // HI = 88Mhz
   0x0A,     // LO Band Type A = A
     0x01,   // Start of the band
     0x18,   //  @ 37MHz
@@ -594,8 +597,8 @@ byte hopset_cell_222[] =
   0xDE,     // Net 222
   0x00,     // S1-S4    - No screen
     0x00,   
-    0x00,   // LO = 30MHz
-    0x91,   // HI = 88Mhz
+    0xF0,   // LO = 30MHz
+    0x90,   // HI = 88Mhz
   0x0A,     // LO Band Type A = A
     0x01,   // Start of the band
     0x18,   //  @ 37MHz
@@ -617,8 +620,8 @@ byte hopset_cell_333[] =
   0x4D,     // Net 333
   0x00,     // S1-S4    - No screen
     0x00,   
-    0x00,   // LO = 30MHz
-    0x91,   // HI = 88Mhz
+    0xF0,   // LO = 30MHz
+    0x90,   // HI = 88Mhz
   0x0A,     // LO Band Type A = A
     0x01,   // Start of the band
     0x18,   //  @ 37MHz
@@ -641,8 +644,8 @@ byte hopset_cell_444[] =
   0xBC,     // Net 444
   0x00,     // S1-S4    - No screen
     0x00,   
-    0x00,   // LO = 30MHz
-    0x91,   // HI = 88Mhz
+    0xF0,   // LO = 30MHz
+    0x90,   // HI = 88Mhz
   0x0A,     // LO Band Type A = A
     0x01,   // Start of the band
     0x18,   //  @ 37MHz
@@ -665,8 +668,8 @@ byte hopset_cell_555[] =
   0x2B,     // Net 555
   0x00,     // S1-S4    - No screen
     0x00,   
-    0x00,   // LO = 30MHz
-    0x91,   // HI = 88Mhz
+    0xF0,   // LO = 30MHz
+    0x90,   // HI = 88Mhz
   0x0A,     // LO Band Type A = A
     0x01,   // Start of the band
     0x18,   //  @ 37MHz
@@ -689,8 +692,8 @@ byte hopset_cell_666[] =
   0x9A,     // Net 666
   0x00,     // S1-S4    - No screen
     0x00,   
-    0x00,   // LO = 30MHz
-    0x91,   // HI = 88Mhz
+    0xF0,   // LO = 30MHz
+    0x90,   // HI = 88Mhz
   0x0A,     // LO Band Type A = A
     0x01,   // Start of the band
     0x18,   //  @ 37MHz
@@ -845,7 +848,10 @@ byte hopset_cell_6[] =
 };
 
 
-byte transec_cell[] =
+//
+//  Cold start transec cell
+//
+byte transec_cell_cold[] =
 {
    0x0a, 0xf7, 0x12, 0x4a, 0xe7, 0x5d, 0x82, 0x53, 
    0x38, 0x18, 0x08, 0xf0, 0x0c, 0xc7, 0x3b, 0xcf // CRC
@@ -1055,18 +1061,17 @@ void loop()
 
   Serial.println("**********************************");
 
-//  ESet1();
   
-//  Type3TOD();
   Type3Full();
+  Type3ColdStart();
+  Type1TEK1();
+  Type1TEK2();
+  Type1TEK3();
   Type3NoTEK();
-//  Transec();
-//  Type3ColdStart();
-//  Type1TEK1();
-//  Type1TEK2();
-//  Type1TEK3();
-//  Type3NoTEK();
+  Type3TOD();
 //  Type2NoTEK();
+//  ESet1();
+//  Transec();
   
   while(1)
   {
@@ -1102,12 +1107,12 @@ void Type3TOD()
 
 
     TestLastCell(TOD_cell);
-  EndFill();
-  delay(500);
-  ReleaseBus();
+    EndFill();
+    delay(500);
+    ReleaseBus();
   
-  Serial.println("Type3TOD Done !!!!");
-  delay(8000);
+    Serial.println("Type3TOD Done !!!!");
+    delay(8000);
 }
 
 
@@ -1160,16 +1165,10 @@ void Type3Full()
 
   // Send Cold Start MAN cells
 //  TestCell(no_fill_tag_cell);
-  TestCell(coldstart_tag_cell);
-  TestCell(transec_cell);
+    TestCell(coldstart_tag_cell);
+    TestCell(transec_cell_cold);
 
 // Send hopset and transec cells
-//    TestCell(hopset_cell_1);
-//    TestCell(lockout_8_50_54_MHz_cell);
-
-//    TestCell(hopset_cell_2);
-//    TestCell(lockout_8_50_54_MHz_cell);
-
 //    TestCell(no_fill_tag_cell);
 //    TestCell(no_fill_tag_cell);
 //    TestCell(no_fill_tag_cell);
@@ -1198,10 +1197,6 @@ void Type3Full()
     TestCell(single_channel_cell);
   
   // Send lockout cells
-//    TestCell(lockout_band_cell);
-//    TestCell(lockout_bitmap_cell);
-//    TestCell(lockout_band_cell_2);
-
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
@@ -1210,18 +1205,15 @@ void Type3Full()
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
-//    TestCell(lockout_7_50_54_MHz_cell);
-//    TestLastCell(lockout_8_50_54_MHz_cell);
-
     TestLastCell(no_fill_tag_cell);
   
 //  delay(500);
-  EndFill();
-  delay(500);
-  ReleaseBus();
+    EndFill();
+    delay(500);
+    ReleaseBus();
   
-  Serial.println("FullType3 Done !!!!");
-  delay(5000);
+    Serial.println("FullType3 Done !!!!");
+    delay(8000);
 }
 
 
@@ -1275,22 +1267,10 @@ void Type3NoTEK()
 
   // Send Cold Start MAN cells
 //  TestCell(no_fill_tag_cell);
-  TestCell(coldstart_tag_cell);
-  TestCell(transec_cell);
+    TestCell(coldstart_tag_cell);
+    TestCell(transec_cell_cold);
 
 // Send hopset and transec cells
-//    TestCell(hopset_cell_1);
-//    TestCell(lockout_8_50_54_MHz_cell);
-
-//    TestCell(hopset_cell_2);
-//    TestCell(lockout_8_50_54_MHz_cell);
-
-//    TestCell(no_fill_tag_cell);
-//    TestCell(no_fill_tag_cell);
-//    TestCell(no_fill_tag_cell);
-//    TestCell(no_fill_tag_cell);
-
-
     TestCell(hopset_cell_111);
     TestCell(transec_cell_1);
 
@@ -1315,10 +1295,6 @@ void Type3NoTEK()
   
 
   // Send lockout cells
-//    TestCell(lockout_band_cell);
-//    TestCell(lockout_bitmap_cell);
-//    TestCell(lockout_band_cell_2);
-
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
@@ -1327,18 +1303,15 @@ void Type3NoTEK()
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
-//    TestCell(lockout_7_50_54_MHz_cell);
-//    TestLastCell(lockout_8_50_54_MHz_cell);
-
     TestLastCell(no_fill_tag_cell);
   
 //  delay(500);
-  EndFill();
-  delay(500);
-  ReleaseBus();
+    EndFill();
+    delay(500);
+    ReleaseBus();
   
-  Serial.println("FullType3 No TEK Done !!!!");
-  delay(8000);
+    Serial.println("FullType3 No TEK Done !!!!");
+    delay(8000);
 }
 
 
@@ -1392,16 +1365,10 @@ void Type3ColdStart()
 
   // Send Cold Start MAN cells
 //  TestCell(no_fill_tag_cell);
-  TestCell(coldstart_tag_cell);
-  TestCell(transec_cell);
+    TestCell(coldstart_tag_cell);
+    TestCell(transec_cell_cold);
 
 // Send hopset and transec cells
-//    TestCell(hopset_cell_1);
-//    TestCell(lockout_8_50_54_MHz_cell);
-
-//    TestCell(hopset_cell_2);
-//    TestCell(lockout_8_50_54_MHz_cell);
-
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
@@ -1409,36 +1376,8 @@ void Type3ColdStart()
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
-
-
-//    TestCell(hopset_cell_1);
-//    TestCell(transec_cell_1);
-
-//    TestCell(hopset_cell_2);
-//    TestCell(transec_cell_2);
-
-//    TestCell(hopset_cell_3);
-//    TestCell(transec_cell_3);
-
-//    TestCell(hopset_cell_4);
-//    TestCell(transec_cell_4);
-
-//    TestCell(hopset_cell_5);
-//    TestCell(transec_cell);
-
-//    TestCell(hopset_cell_6);
-//    TestCell(transec_cell);
-
-
-//    TestCell(TOD_cell);
-//    TestCell(single_channel_cell);
-  
 
   // Send lockout cells
-//    TestCell(lockout_band_cell);
-//    TestCell(lockout_bitmap_cell);
-//    TestCell(lockout_band_cell_2);
-
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
@@ -1447,9 +1386,6 @@ void Type3ColdStart()
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
-//    TestCell(lockout_7_50_54_MHz_cell);
-//    TestLastCell(lockout_8_50_54_MHz_cell);
-
     TestLastCell(no_fill_tag_cell);
   
 //  delay(500);
@@ -1530,7 +1466,7 @@ void ESet1()
    Serial.println("Sending ESet 1 Fill !!!!");
 
     TestCell(hopset_cell_111);
-    TestCell(transec_cell);
+    TestCell(transec_cell_cold);
 
 //    delay(500);
     EndFill();
@@ -1550,7 +1486,7 @@ void Transec()
 
    Serial.println("Sending Transec ONLY Fill !!!!");
 
-    TestCell(transec_cell);
+    TestCell(transec_cell_cold);
 
 //    delay(500);
     EndFill();
@@ -1613,22 +1549,10 @@ void Type2NoTEK()
 
   // Send Cold Start MAN cells
 //  TestCell(no_fill_tag_cell);
-  TestCell(coldstart_tag_cell);
-  TestCell(transec_cell);
+    TestCell(coldstart_tag_cell);
+    TestCell(transec_cell_cold);
 
 // Send hopset and transec cells
-//    TestCell(hopset_cell_1);
-//    TestCell(lockout_8_50_54_MHz_cell);
-
-//    TestCell(hopset_cell_2);
-//    TestCell(lockout_8_50_54_MHz_cell);
-
-//    TestCell(no_fill_tag_cell);
-//    TestCell(no_fill_tag_cell);
-//    TestCell(no_fill_tag_cell);
-//    TestCell(no_fill_tag_cell);
-
-
     TestCell(hopset_cell_111);
     TestCell(transec_cell_1);
 
@@ -1653,10 +1577,6 @@ void Type2NoTEK()
   
 
   // Send lockout cells
-//    TestCell(lockout_band_cell);
-//    TestCell(lockout_bitmap_cell);
-//    TestCell(lockout_band_cell_2);
-
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
@@ -1665,9 +1585,6 @@ void Type2NoTEK()
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
     TestCell(no_fill_tag_cell);
-//    TestCell(lockout_7_50_54_MHz_cell);
-//    TestLastCell(lockout_8_50_54_MHz_cell);
-
     TestLastCell(no_fill_tag_cell);
   
 //  delay(500);
@@ -1676,7 +1593,7 @@ void Type2NoTEK()
   ReleaseBus();
   
   Serial.println("FullType2 No TEK Done !!!!");
-  delay(5000);
+  delay(8000);
 }
 
 
