@@ -31,7 +31,7 @@ const int   tL = 50;
 //Correction factor for the timing
 int tCorr = clockCyclesToMicroseconds(50); // a digitalWrite is about 50 cycles
 int  _bitPeriod = 1000000 / 8000;
-int tT = _bitPeriod/2 - tCorr; 
+int tT = _bitPeriod/2; //  - tCorr; 
 
 
 //--------------------------------------------------------------
@@ -1036,10 +1036,10 @@ byte TOD_cell[] =
 {
   0x00, 0x02, 
   0x20, 0x17,   // 2017 - year
-  0x09, 0x14,   // MM DD
-  0x00, 0x57,   // Julian Day
-  0x23,         // Hours
-  0x17,         // Minutes
+  0x09, 0x15,   // MM DD
+  0x02, 0x58,   // Julian Day
+  0x17,         // Hours
+  0x45,         // Minutes
   0x07,         // Seconds
   0x00,         // mSec
   0x00, 
