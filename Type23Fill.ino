@@ -15,7 +15,7 @@ const byte   PIN_F = 6;
 //--------------------------------------------------------------
 const int   tM = 50;    
 const int   tA = 50;
-const int   tE = 100;    // REQ -> Fill
+const int   tE = 500;    // REQ -> Fill
 const int   tZ = 500;    // End -> New Fill
 
 //--------------------------------------------------------------
@@ -37,12 +37,12 @@ int tT = _bitPeriod/2; //  - tCorr;
 //--------------------------------------------------------------
 // Timeouts in ms
 //--------------------------------------------------------------
-const int   tB = 500;      // Query -> Response from Radio
+const int   tB = 200;      // Query -> Response from Radio
 const int   tD = 1000;     // PIN_C Pulse Width
 const int   tG = 1000;     // PIN_B Pulse Wodth
 const int   tH = 1000;     // BAD HIGH - > REQ LOW
 
-const int   tF = 4000;     // End of fill - > response
+const int   tF = 3000;     // End of fill - > response
 const long  tC = 5*60*1000L;  // 5 minutes - > until REQ
 
 
@@ -56,19 +56,28 @@ byte GetPinLevel(byte PinNumber)
    return ( (r1 == r2) || (r1 == r3) ? r1 : r2) ;
 }
 
-typedef enum {
+typedef enum FILL_TYPE{
   TYPE1 = 1, 
   TYPE2 = 2, 
   TYPE3 = 3, 
 } FILL_TYPE;
 
-typedef enum {
+typedef enum RESULT{
   ERR = -2,
   TIMEOUT = -1,
   OK = 0
-} RESULT_TYPE;
+} RESULT;
 
 static FILL_TYPE   gFillType = TYPE3;
+
+static byte Type1_PIN_B = HIGH;
+static byte Type1_PIN_E = HIGH;
+
+void  SetFillType(byte newType)
+{
+  Serial.print("Set Fill Type = "); Serial.println(newType, HEX);
+  gFillType = (FILL_TYPE) newType;
+}
 
 void SendQuery(byte Data)
 {
@@ -152,6 +161,7 @@ byte GetEquipmentType()
         i++;
         if( i >= 40)
         {
+          Serial.print("GetEquipmentType = "); Serial.println(GetPinLevel(PIN_B), HEX);
           return (GetPinLevel(PIN_B) == LOW) ? TYPE3 : TYPE2;
         }
       }
@@ -163,12 +173,15 @@ byte GetEquipmentType()
 
 //
 //  Wait for the first Fill request functions
+// For the First Fill request the timeout is 5 minutes!!!!!!!!!!!!!!!!
 //  For Type 2 and 3 Fills - the pin_B should be set as input to check the if fill was OK.
 //    But we don't check for the previous Fill
-//
+// Additionally, for the Type1 fill request the PIN_C may stay LOW pretty long
+//  so we will timeout with good code if PIN_C stays low
 byte WaitFirstReqType1()
 {
   byte  PreviousState = HIGH;
+  byte  Result = TIMEOUT;
 
   pinMode(PIN_C, INPUT_PULLUP);    // make pin input
   digitalWrite(PIN_C, HIGH);  // Set pullup 
@@ -181,16 +194,18 @@ byte WaitFirstReqType1()
 
     if(PreviousState != NewState)
     {
-      Serial.print("C = "); Serial.println(NewState, HEX);
+      Serial.print("WaitFirstReqType1 C = "); Serial.println(NewState, HEX);
 
       PreviousState = NewState;
-      if( NewState == HIGH )
-      {
+      if( NewState == HIGH ) {
         return OK;
+      }else {
+        Timeout = millis() + tD;
+        Result = OK;
       }
     }
   }
-  return TIMEOUT;
+  return Result;
 }
 
 byte WaitFirstReqType23()
@@ -210,11 +225,10 @@ byte WaitFirstReqType23()
 
     if(PreviousState != NewState)
     {
-      Serial.print("C = ");   Serial.println(NewState, HEX);
+      Serial.print("WaitFirstReqType23 C = ");   Serial.println(NewState, HEX);
 
       PreviousState = NewState;
-      if( NewState == HIGH )
-      {
+      if( NewState == HIGH ) {
         return OK;
       }
     }
@@ -236,6 +250,8 @@ byte WaitReqType1()
 {
 
   byte  PreviousState_C = HIGH;
+  byte  Result = TIMEOUT;
+  
   unsigned long Timeout = millis() + tF;
 
   pinMode(PIN_C, INPUT_PULLUP);    // make pin input
@@ -248,16 +264,18 @@ byte WaitReqType1()
 
     if(PreviousState_C != NewState_C)  
     {
-      Serial.print("C = "); Serial.println(NewState_C, HEX);
+      Serial.print("WaitReqType1 C = "); Serial.println(NewState_C, HEX);
       
       PreviousState_C = NewState_C;
-      if( NewState_C == HIGH ) 
-      {
+      if( NewState_C == HIGH ) {
         return OK;
+      }else {
+        Timeout = millis() + tD;
+        Result = OK;
       }
     }
   }
-  return TIMEOUT;
+  return Result;
 }
 
 byte WaitReqType23()
@@ -281,7 +299,7 @@ byte WaitReqType23()
 
     if(PreviousState_C != NewState_C)  
     {
-      Serial.print("C = ");   Serial.println(NewState_C, HEX);
+      Serial.print("WaitReqType23 C = ");   Serial.println(NewState_C, HEX);
       
       PreviousState_C = NewState_C;
       if( NewState_C == HIGH ) 
@@ -293,7 +311,7 @@ byte WaitReqType23()
     {
       if( NewState_B == LOW ) 
       {
-        Serial.print("B = ");   Serial.println(NewState_B, HEX);
+        Serial.print("WaitReqType23 B = ");   Serial.println(NewState_B, HEX);
         Result = ERR;  // Bad CRC
       }
       PreviousState_B = NewState_B;
@@ -329,7 +347,7 @@ byte WaitLastReqType1()
 
     if(PreviousState_C != NewState_C)  
     {
-      Serial.print("C = ");   Serial.println(NewState_C, HEX);
+      Serial.print("WaitLastReqType1 C = ");   Serial.println(NewState_C, HEX);
 
       if( NewState_C == LOW ) 
       {
@@ -360,7 +378,7 @@ byte WaitLastReqType23()
 
     if(PreviousState_C != NewState_C)  
     {
-      Serial.print("C = ");   Serial.println(NewState_C, HEX);
+      Serial.print("WaitLastReqType23 C = ");   Serial.println(NewState_C, HEX);
 
       if( NewState_C == LOW ) 
       {
@@ -371,7 +389,7 @@ byte WaitLastReqType23()
     {
       if( NewState_B == LOW ) 
       {
-        Serial.print("B = ");   Serial.println(NewState_B, HEX);
+        Serial.print("WaitLastReqType23 B = ");   Serial.println(NewState_B, HEX);
         Result = ERR;  // Bad CRC
       }
       PreviousState_B = NewState_B;
@@ -432,6 +450,7 @@ void  EndFill()
 
 void AcquireBusType23()
 {
+  SetFillType(TYPE3);
   digitalWrite(PIN_B, HIGH);
   digitalWrite(PIN_C, HIGH);
   digitalWrite(PIN_D, HIGH);
@@ -447,10 +466,11 @@ void AcquireBusType23()
 
 void AcquireBusType1()
 {
-  digitalWrite(PIN_B, LOW);
+  SetFillType(TYPE1);
+  digitalWrite(PIN_B, Type1_PIN_B);
   digitalWrite(PIN_C, HIGH);
   digitalWrite(PIN_D, HIGH);
-  digitalWrite(PIN_E, HIGH);
+  digitalWrite(PIN_E, Type1_PIN_E);
   digitalWrite(PIN_F, HIGH);
 
   pinMode(PIN_B, OUTPUT);
@@ -589,11 +609,6 @@ byte TestLastCell(byte *cell)
   return Result;
 }
 
-
-// void  SetFillType(FILL_TYPE newType)
-//{
-//  gFillType = newType;
-//}
 
 // Tag values
 const byte NO_FILL_TAG = 0x7D;
@@ -1201,8 +1216,6 @@ void Type3TOD()
       SendQuery(QUERY_TYPE3);
       Equipment = GetEquipmentType();
       EndHandshake();
-      // Serial.print("EquipmentType = 0x");
-      // Serial.println(Equipment, HEX);
     }
 
     Serial.println("WaitFirstReq");
@@ -1235,8 +1248,6 @@ void Type3Full()
       SendQuery(QUERY_TYPE3);
       Equipment = GetEquipmentType();
       EndHandshake();
-      // Serial.print("EquipmentType = 0x");
-      // Serial.println(Equipment, HEX);
     }
 
     Serial.println("WaitFirstReq");
@@ -1334,8 +1345,6 @@ void Type3NoTEK()
       SendQuery(QUERY_TYPE3);
       Equipment = GetEquipmentType();
       EndHandshake();
-      // Serial.print("EquipmentType = 0x");
-      // Serial.println(Equipment, HEX);
     }
 
     Serial.println("WaitFirstReq");
@@ -1429,8 +1438,6 @@ void Type3ColdStart()
       SendQuery(QUERY_TYPE3);
       Equipment = GetEquipmentType();
       EndHandshake();
-      // Serial.print("EquipmentType = 0x");
-      // Serial.println(Equipment, HEX);
     }
 
     Serial.println("WaitFirstReq");
@@ -1499,8 +1506,7 @@ void Type1TEK1()
    Serial.println("**********Starting FullType1 TEK1 Fill***********");
    AcquireBusType1();
    Serial.println("WaitFirstReq");
-   WaitFirstReqType1();      
-
+   WaitFirstReq();
    Serial.println("Sending FullType1 TEK1 Fill !!!!");
 
     TestKeyCell(comsec_key_cell_1);
@@ -1519,7 +1525,7 @@ void Type1TEK2()
    Serial.println("**********Starting FullType1 TEK2 Fill***********");
    AcquireBusType1();
    Serial.println("WaitFirstReq");
-   WaitFirstReqType1();      
+   WaitFirstReq();
 
    Serial.println("Sending FullType1 TEK2 Fill !!!!");
 
@@ -1538,7 +1544,7 @@ void Type1TEK3()
    Serial.println("**********Starting FullType1 TEK3 Fill***********");
    AcquireBusType1();
    Serial.println("WaitFirstReq");
-   WaitFirstReqType1();      
+   WaitFirstReq();
 
    Serial.println("Sending FullType1 TEK3 Fill !!!!");
 
@@ -1557,7 +1563,7 @@ void ESet1()
    Serial.println("**********Starting ESet 1 Fill***********");
    AcquireBusType1();
    Serial.println("WaitFirstReq");
-   WaitFirstReq();      
+   WaitFirstReq();
 
    Serial.println("Sending ESet 1 Fill !!!!");
 
