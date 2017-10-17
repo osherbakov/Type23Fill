@@ -143,7 +143,7 @@ void SendCell(byte *p_cell)
   }
 }
 
-byte GetEquipmentType()
+signed char GetEquipmentType()
 {
   digitalWrite(PIN_E, HIGH);      // Turn_on the pullup register
   pinMode(PIN_E, INPUT_PULLUP);   // make a pin input with pullup
@@ -178,10 +178,10 @@ byte GetEquipmentType()
 //    But we don't check for the previous Fill
 // Additionally, for the Type1 fill request the PIN_C may stay LOW pretty long
 //  so we will timeout with good code if PIN_C stays low
-byte WaitFirstReqType1()
+signed char WaitFirstReqType1()
 {
   byte  PreviousState = HIGH;
-  byte  Result = TIMEOUT;
+  signed char Result = TIMEOUT;
 
   pinMode(PIN_C, INPUT_PULLUP);    // make pin input
   digitalWrite(PIN_C, HIGH);  // Set pullup 
@@ -208,7 +208,7 @@ byte WaitFirstReqType1()
   return Result;
 }
 
-byte WaitFirstReqType23()
+signed char WaitFirstReqType23()
 {
   byte  PreviousState = HIGH;
 
@@ -236,7 +236,7 @@ byte WaitFirstReqType23()
   return TIMEOUT;
 }
 
-byte WaitFirstReq()
+signed char  WaitFirstReq()
 {
   return (gFillType == TYPE1) ? WaitFirstReqType1() : WaitFirstReqType23();
 }
@@ -246,11 +246,11 @@ byte WaitFirstReq()
 //  Wait for the normal Fill request functions
 //  For Type 2 and 3 Fills - the pin_B is checked to see if the fill was OK.
 //
-byte WaitReqType1()
+signed char  WaitReqType1()
 {
 
   byte  PreviousState_C = HIGH;
-  byte  Result = TIMEOUT;
+  signed char Result = TIMEOUT;
   
   unsigned long Timeout = millis() + tF;
 
@@ -278,12 +278,12 @@ byte WaitReqType1()
   return Result;
 }
 
-byte WaitReqType23()
+signed char  WaitReqType23()
 {
 
   byte  PreviousState_B = HIGH;
   byte  PreviousState_C = HIGH;
-  byte  Result = OK;
+  signed char Result = OK;
   unsigned long Timeout = millis() + tF;
 
   pinMode(PIN_C, INPUT_PULLUP);    // make pin input
@@ -320,7 +320,7 @@ byte WaitReqType23()
   return TIMEOUT;
 }
 
-byte WaitReq()
+signed char WaitReq()
 {
   return (gFillType == TYPE1) ? WaitReqType1() : WaitReqType23();
 }
@@ -332,7 +332,7 @@ byte WaitReq()
 // The last request is special - we return JUST AS PIN_C goes LOW...
 //
 
-byte WaitLastReqType1()
+signed char WaitLastReqType1()
 {
   byte  PreviousState_C = HIGH;
   unsigned long Timeout = millis() + tF;
@@ -358,11 +358,11 @@ byte WaitLastReqType1()
   return TIMEOUT;
 }
 
-byte WaitLastReqType23()
+signed char WaitLastReqType23()
 {
   byte  PreviousState_C = HIGH;
   byte  PreviousState_B = HIGH;
-  byte  Result = OK;
+  signed char Result = OK;
   unsigned long Timeout = millis() + tF;
 
   pinMode(PIN_C, INPUT_PULLUP);    // make pin input
@@ -398,7 +398,7 @@ byte WaitLastReqType23()
   return TIMEOUT;
 }
 
-byte WaitLastReq()
+signed char WaitLastReq()
 {
   return (gFillType == TYPE1) ? WaitLastReqType1() : WaitLastReqType23();
 }
@@ -498,17 +498,6 @@ void ReleaseBus()
 }
 
 
-void PrintKeyCell(byte *cell)
-{
-  Serial.print("Send Key Cell:");
-  for(int i = 0; i < 15; i++)
-  {
-      Serial.print(" 0x");Serial.print(cell[i], HEX);
-  }      
-  Serial.print(" CRC: 0x");
-  Serial.println(cell[15], HEX);
-}
-
 void PrintCell(byte *cell)
 {
   Serial.print("Send Cell:");
@@ -520,40 +509,40 @@ void PrintCell(byte *cell)
   Serial.println(cell[15], HEX);
 }
 
-byte TestKeyCell(byte *cell)
+signed char TestKeyCell(byte *cell)
 {
   CRC  cacl_crc;
-  byte Result = 0;
+  signed char Result = 0;
 
   cacl_crc.ini();
   cacl_crc.appnd(cell, 16);
   cell[15] ^= 0xFF;
   
-  PrintKeyCell(cell); 
+  PrintCell(cell); 
   SendCell(cell);
   Result = (gFillType == TYPE1) ? WaitReqType1() : WaitReqType23();
   return Result;
 }
 
-byte TestLastKeyCell(byte *cell)
+signed char TestLastKeyCell(byte *cell)
 {
   CRC  cacl_crc;
-  byte Result = 0;
+  signed char Result = 0;
 
   cacl_crc.ini();
   cacl_crc.appnd(cell, 16);
   cell[15] ^= 0xFF;
   
-  PrintKeyCell(cell); 
+  PrintCell(cell); 
   SendCell(cell);
   Result = (gFillType == TYPE1) ? WaitLastReqType1() : WaitLastReqType23();
   return Result;
 }
 
-byte TestCell(byte *cell)
+signed char TestCell(byte *cell)
 {
   CRC  cacl_crc;
-  byte Result = OK;
+  signed char Result = OK;
 
   cacl_crc.ini();
   cacl_crc.appnd(cell, 16);
@@ -580,10 +569,10 @@ byte TestCell(byte *cell)
   return Result;
 }
 
-byte TestLastCell(byte *cell)
+signed char TestLastCell(byte *cell)
 {
   CRC  cacl_crc;
-  byte Result = OK;
+  signed char Result = OK;
 
   cacl_crc.ini();
   cacl_crc.appnd(cell, 16);
@@ -609,6 +598,59 @@ byte TestLastCell(byte *cell)
   return Result;
 }
 
+
+signed char TestAnyCell(byte *cell)
+{
+  CRC  cacl_crc;
+  signed char Result = OK;
+
+  for(int i = 0; i < 256; i++)
+  {
+    PrintCell(cell); 
+    SendCell(cell);
+    Result = (gFillType == TYPE1) ? WaitReqType1() : WaitReqType23();
+    if( Result == 0)
+    {
+      // Good CRC
+      return OK;
+    }else if( Result == ERR)  {
+      // Bad CRC - change it (increment)
+      cell[15] = i;
+      Serial.print(".");
+    }else  {  
+      // Timeout or other things
+      Serial.println("Timeout");
+      return Result;
+    }
+  }
+  return Result;
+}
+
+signed char TestLastAnyCell(byte *cell)
+{
+  CRC  cacl_crc;
+  signed char Result = OK;
+
+  for(int i = 0; i < 256; i++)
+  {
+    PrintCell(cell); 
+    SendCell(cell);
+    Result = (gFillType == TYPE1) ? WaitLastReqType1() : WaitLastReqType23();
+    if( Result == 0) {
+      // Good CRC
+      return OK;
+    }else if(Result == ERR) {
+      // Bad CRC - change it (increment)
+      cell[15] = i;
+      Serial.print(".");
+    }else{  
+      // Timeout or other things
+      Serial.println("Timeout");
+      return Result;
+    }
+  }
+  return Result;
+}
 
 // Tag values
 const byte NO_FILL_TAG = 0x7D;
@@ -699,7 +741,7 @@ byte hopset_cell_111[] =
     0x00,   
     0xF0,   // LO = 30MHz
     0x90,   // HI = 88Mhz
-  0x0A,     // LO Band Type A = A
+  0x00,     // LO Band Type A = 0
     0x01,   // Start of the band
     0x18,   //  @ 37MHz
     
@@ -722,7 +764,7 @@ byte hopset_cell_222[] =
     0x00,   
     0xF0,   // LO = 30MHz
     0x90,   // HI = 88Mhz
-  0x0A,     // LO Band Type A = A
+  0x00,     // LO Band Type A = 0
     0x01,   // Start of the band
     0x18,   //  @ 37MHz
     
@@ -745,7 +787,7 @@ byte hopset_cell_333[] =
     0x00,   
     0xF0,   // LO = 30MHz
     0x90,   // HI = 88Mhz
-  0x0A,     // LO Band Type A = A
+  0x00,     // LO Band Type A = 0
     0x01,   // Start of the band
     0x18,   //  @ 37MHz
     
@@ -769,7 +811,7 @@ byte hopset_cell_444[] =
     0x00,   
     0xF0,   // LO = 30MHz
     0x90,   // HI = 88Mhz
-  0x0A,     // LO Band Type A = A
+  0x00,     // LO Band Type A = 0
     0x01,   // Start of the band
     0x18,   //  @ 37MHz
     
@@ -793,7 +835,7 @@ byte hopset_cell_555[] =
     0x00,   
     0xF0,   // LO = 30MHz
     0x90,   // HI = 88Mhz
-  0x0A,     // LO Band Type A = A
+  0x00,     // LO Band Type A = 0
     0x01,   // Start of the band
     0x18,   //  @ 37MHz
     
@@ -817,7 +859,7 @@ byte hopset_cell_666[] =
     0x00,   
     0xF0,   // LO = 30MHz
     0x90,   // HI = 88Mhz
-  0x0A,     // LO Band Type A = A
+  0x00,     // LO Band Type A = 0
     0x01,   // Start of the band
     0x18,   //  @ 37MHz
     
@@ -1172,6 +1214,30 @@ byte TOD_cell[] =
 };
 
 
+byte loadset_type2[22][16] = {
+		{ 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x77 }, // TEK1 EMPTY
+		{ 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x77 }, // TEK2 EMPTY
+		{ 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x77 }, // TEK3 EMPTY
+		{ 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x77 }, // TEK4 EMPTY
+		{ 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x77 }, // TEK5 EMPTY
+		{ 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x77 }, // TEK6 EMPTY
+		{ 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x77 }, // MAN EMPTY
+		{ 0x8C, 0x0D, 0x00, 0x00, 0x00, 0x19, 0x00, 0x00, 0x01, 0xD1, 0x87, 0x00, 0x02, 0xE1, 0x82, 0x80 }, // CH1 hopset - 30-40MHz (190), remove every even and every fourth
+		{ 0xE9, 0x32, 0x67, 0xB0, 0x35, 0x96, 0x53, 0x74, 0x79, 0x4A, 0xEF, 0x88, 0xB5, 0x06, 0x83, 0x16 },	// CH1 transec
+		{ 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x77 }, // CH2 EMPTY
+		{ 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x77 }, // CH3 EMPTY
+		{ 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x77 }, // CH4 EMPTY
+		{ 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x77 }, // CH5 EMPTY
+		{ 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x77 }, // CH6 EMPTY
+		{ 0x0E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x00 }, // L1
+		{ 0x1E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x9E }, // L2
+		{ 0x2E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x7F }, // L3
+		{ 0x3E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xE1 }, // L4
+		{ 0x4E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFE }, // L5
+		{ 0x5E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x60 }, // L6
+		{ 0x6E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x81 }, // L7
+		{ 0x7E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x1F }  // L8
+};
 
 void setup()
 {
@@ -1186,12 +1252,14 @@ void loop()
   
 //  Type3Full();
 //  Type3ColdStart();
-  Type1TEK1();
-  Type1TEK2();
-  Type1TEK3();
+//  Type1TEK1();
+//  Type1TEK2();
+//  Type1TEK3();
 //  Type3NoTEK();
 //  Type3TOD();
 
+	Type2Any();
+	  
 //  Type2NoTEK();
 //  ESet1();
 //  Transec();
@@ -1202,9 +1270,46 @@ void loop()
 }
 
 
+void Type2Any()
+{
+	  int i;
+    char Equipment = TIMEOUT;
+    Serial.println("**********Starting Type2Any Fill***********");
+    AcquireBusType23();
+    Equipment = TIMEOUT;
+    while(Equipment == TIMEOUT)
+    {
+      delay(2000);
+      Serial.println("SendQuery");
+      StartHandshake();
+      SendQuery(QUERY_TYPE3);
+      Equipment = GetEquipmentType();
+      EndHandshake();
+    }
+
+    Serial.println("WaitFirstReq");
+    WaitFirstReq();      
+
+    Serial.println("Sending Type2Any Fill !!!!");
+
+	  for(i = 0; i < 21; i++) {
+		  TestAnyCell(loadset_type2[i]);
+	  }
+    TestLastAnyCell(loadset_type2[i]);
+    
+	delay(500);
+    EndFill();
+    delay(500);
+    ReleaseBus();
+  
+    Serial.println("Type2Any Done !!!!");
+    delay(8000);
+}
+
+
 void Type3TOD()
 {
-    byte Equipment = TIMEOUT;
+    char Equipment = TIMEOUT;
     Serial.println("**********Starting Type3TOD Fill***********");
     AcquireBusType23();
     Equipment = TIMEOUT;
@@ -1236,7 +1341,7 @@ void Type3TOD()
 
 void Type3Full()
 {
-    byte Equipment = TIMEOUT;
+    char Equipment = TIMEOUT;
     Serial.println("**********Starting FullType3 Fill***********");
     AcquireBusType23();
     Equipment = TIMEOUT;
@@ -1332,7 +1437,7 @@ void Type3Full()
 
 void Type3NoTEK()
 {
-    byte Equipment = TIMEOUT;
+    char Equipment = TIMEOUT;
     
     Serial.println("**********Starting FullType3 No TEK Fill***********");
     AcquireBusType23();
@@ -1425,7 +1530,7 @@ void Type3NoTEK()
 
 void Type3ColdStart()
 {
-    byte Equipment = TIMEOUT;
+    char Equipment = TIMEOUT;
     
     Serial.println("**********Starting FullType3 ColdStart Fill***********");
     AcquireBusType23();
@@ -1609,7 +1714,7 @@ void Transec()
 
 void Type2NoTEK()
 {
-    byte Equipment = TIMEOUT;
+    char Equipment = TIMEOUT;
     
     Serial.println("**********Starting FullType2 No TEK Fill***********");
     AcquireBusType23();
