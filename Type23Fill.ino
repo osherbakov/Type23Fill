@@ -733,6 +733,12 @@ byte comsec_key_cell_6[] =
 };
 
 
+byte comsec_key_kek[] =
+{
+   0x47, 0xd2, 0x13, 0xee, 0x77, 0xcd, 0xff, 0x49, 
+   0x05, 0xb1, 0x47, 0x3b, 0x2b, 0xca, 0x5f, 0x3a  // CRC
+};
+
 byte hopset_cell_111[] =
 {
   0x8C,     // No L7 L8, Last
@@ -1075,10 +1081,10 @@ byte lockout_band_cell[] =
     0x51,     // 39 MHz
     0x68, 
    
-     0x00, 
+     0xFF, 
      0x00, 
    
-     0x00, 
+     0xFF, 
      0x00, 
   0x00  // CRC
 };
@@ -1174,10 +1180,10 @@ byte lockout_8_50_54_MHz_cell[] =
      0xFF, 
      0x00, 
    
-     0x00, 
+     0xFF, 
      0x00, 
    
-     0x00, 
+     0xFF, 
      0x00, 
   0x00  // CRC
 };
@@ -1239,6 +1245,177 @@ byte loadset_type2[22][16] = {
 		{ 0x7E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x1F }  // L8
 };
 
+
+
+//
+//  Loadset specifially designed for CARNG training
+//
+
+// CUE = 34.4Mhz, MAN = 40.225MHz, CH1 = 50MHz, CH2 = 60MHz and so on...
+byte single_channel_CA[] =
+{
+  0x00, 0x01, 
+  0xFF,
+  0x0B, 0x01, 0x99, 
+  0x32, 0x04, 0xB0, 
+  0x64, 0x07, 0xD0, 
+  0x96, 0x0A, 0xF0,
+  0x00  // CRC
+};
+
+
+byte hopset_cell_Chan1_CA[] =
+{
+  0x8C,     // No L7 L8, Last
+  0x6F,     // Net 111
+  0x00,     // S1-S4    - No screen
+    0x00,   
+    0x70,   // LO = 30MHz (0x000)
+    0x11,   // HI = 37Mhz (0x118 - 1)
+  0x00,     // LO Band Type A = 0
+    0x10,   // 1 freq of 30.4MHz (0x010)
+    0x10,   //  
+    
+    0x10,   // 1 freq of 32.25MHz (0x05A)
+    0x5A,   //  
+
+    0x10,   // 1 freq of 34.4MHz (0x0B0)
+    0xB0,   //  
+    
+    0x10,   // 1 freq of 34.825 (0x0C1)
+    0xC1,   // 
+    
+  0x00  //CRC
+};
+
+byte hopset_cell_Chan2_CA[] =
+{
+  0x8C,     // No L7 L8, Last
+  0xDE,     // Net 222
+  0x00,     // S1-S4    - No screen
+    0x90,   
+    0xF1,   // LO = 40MHz (0x190)
+    0x31,   // HI = 50Mhz (0x320 - 1)
+  0x00,     // LO Band Type A = 0
+    0x11,   // 1 freq of 40.225MHz (0x199)
+    0x99,   //  
+    
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+    
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+    
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+  0x00  //CRC
+};
+
+byte hopset_cell_Chan3_CA[] =
+{
+  0x8D,     // No L7 L8, Last
+  0x4D,     // Net 333
+  0x00,     // S1-S4    - No screen
+    0x30,   
+    0xF7,   // LO = 76MHz (0x730)
+    0x90,   // HI = 88Mhz (0x910 - 1)
+  0x00,     // LO Band Type A = 0
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+    
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+    
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+    
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+  0x00  //CRC
+};
+
+
+byte hopset_cell_Chan4_CA[] =
+{
+  0x8D,     // No L7 L8, Last
+  0xBC,     // Net 444
+  0x00,     // S1-S4    - No screen
+    0x00,   
+    0x70,   // LO = 30MHz (0x000)
+    0x11,   // HI = 37Mhz (0x118 - 1)
+  0x00,     // LO Band Type A = 0
+    0x10,   // 1 freq of 30.4MHz (0x010)
+    0x10,   //  
+    
+    0x10,   // 1 freq of 32.25MHz (0x05A)
+    0x5A,   //  
+
+    0x10,   // 1 freq of 34.4MHz (0x0B0)
+    0xB0,   //  
+    
+    0x10,   // 1 freq of 34.825 (0x0C1)
+    0xC1,   // 
+    
+  0x00  //CRC
+};
+
+
+byte hopset_cell_Chan5_CA[] =
+{
+  0x8E,     // No L7 L8, Last
+  0x2B,     // Net 555
+  0x00,     // S1-S4    - No screen
+    0x90,   
+    0xF1,   // LO = 40MHz (0x190)
+    0x31,   // HI = 50Mhz (0x320 - 1)
+  0x00,     // LO Band Type A = 0
+    0x11,   // 1 freq of 40.225MHz (0x199)
+    0x99,   //  
+    
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+    
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+    
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+  0x00  //CRC
+};
+
+
+byte hopset_cell_Chan6_CA[] =
+{
+  0x8E,     // No L7 L8, Last
+  0x9A,     // Net 666
+  0x00,     // S1-S4    - No screen
+    0x30,   
+    0xF7,   // LO = 76MHz (0x730)
+    0x90,   // HI = 88Mhz (0x910 - 1)
+  0x00,     // LO Band Type A = 0
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+    
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+    
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+    
+    0xFF,   // Start of the band
+    0x00,   //  Skip
+  0x00  //CRC
+};
+
+byte lockout1_CA[] =  { 0x0E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x00 }; // L1
+byte lockout2_CA[] =  { 0x1E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x9E }; // L2
+byte lockout3_CA[] =  { 0x2E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x7F }; // L3
+byte lockout4_CA[] =  { 0x3E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xE1 }; // L4
+byte lockout5_CA[] =  { 0x4E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFE }; // L5
+byte lockout6_CA[] =  { 0x5E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x60 }; // L6
+byte lockout7_CA[] =  { 0x6E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x81 }; // L7
+byte lockout8_CA[] =  { 0x7E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x1F }; // L8
+
 void setup()
 {
   Serial.begin(115200);
@@ -1258,8 +1435,19 @@ void loop()
 //  Type3NoTEK();
 //  Type3TOD();
 
-	Type2Any();
-	  
+//	Type2Any();
+
+	  Type3CA();
+//    Type2CAColdStart();
+
+//    Type1TEK1();
+//    Type1TEK2();
+//    Type1TEK3();
+    
+    Type3CANoTEK();
+//    Type1KEK();
+
+    
 //  Type2NoTEK();
 //  ESet1();
 //  Transec();
@@ -1269,6 +1457,402 @@ void loop()
   }
 }
 
+void Type3CA()
+{
+    char Equipment = TIMEOUT;
+    Serial.println("**********Starting Type3CA Fill***********");
+    AcquireBusType23();
+    Equipment = TIMEOUT;
+    while(Equipment == TIMEOUT)
+    {
+      delay(2000);
+      Serial.println("SendQuery");
+      StartHandshake();
+      SendQuery(QUERY_TYPE3);
+      Equipment = GetEquipmentType();
+      EndHandshake();
+    }
+
+    Serial.println("WaitFirstReq");
+    WaitFirstReq();      
+
+    Serial.println("Sending Type3CA Fill !!!!");
+
+// Send KeyTag and KeyData  Cells 
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_1);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_2);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_3);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_4);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_5);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_6);
+
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+
+  // Send Cold Start MAN cells
+    TestCell(coldstart_tag_cell);
+    TestCell(transec_cell_cold);
+
+  // Send hopset and transec cells
+    TestCell(hopset_cell_Chan1_CA);
+    TestCell(transec_cell_1);
+
+    TestCell(hopset_cell_Chan2_CA);
+    TestCell(transec_cell_2);
+
+    TestCell(hopset_cell_Chan3_CA);
+    TestCell(transec_cell_3);
+
+    TestCell(hopset_cell_Chan4_CA);
+    TestCell(transec_cell_4);
+
+    TestCell(hopset_cell_Chan5_CA);
+    TestCell(transec_cell_5);
+
+    TestCell(hopset_cell_Chan6_CA);
+    TestCell(transec_cell_6);
+
+  // Send Type 3 TOD and Single Channel
+    TestCell(TOD_cell);
+    TestCell(single_channel_CA);
+  
+  // Send lockout cells
+    TestCell(lockout1_CA);
+    TestCell(lockout2_CA);
+    TestCell(lockout3_CA);
+    TestCell(lockout4_CA);
+
+    TestCell(lockout5_CA);
+    TestCell(lockout6_CA);
+    TestCell(lockout7_CA);
+    TestLastCell(lockout8_CA);
+
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestLastCell(no_fill_tag_cell);
+  
+    delay(500);
+    EndFill();
+    delay(500);
+    ReleaseBus();
+  
+    Serial.println("Type3CA Done !!!!");
+    delay(8000);
+}
+
+void Type3CANoTEK()
+{
+    char Equipment = TIMEOUT;
+    Serial.println("**********Starting Type3CA No TEK Fill***********");
+    AcquireBusType23();
+    Equipment = TIMEOUT;
+    while(Equipment == TIMEOUT)
+    {
+      delay(2000);
+      Serial.println("SendQuery");
+      StartHandshake();
+      SendQuery(QUERY_TYPE3);
+      Equipment = GetEquipmentType();
+      EndHandshake();
+    }
+
+    Serial.println("WaitFirstReq");
+    WaitFirstReq();      
+
+    Serial.println("Sending Type3CA No TEK Fill !!!!");
+
+// Send KeyTag and KeyData  Cells 
+//    TestCell(comsec_tag_cell);
+//    TestKeyCell(comsec_key_cell_1);
+//    TestCell(comsec_tag_cell);
+//    TestKeyCell(comsec_key_cell_2);
+//    TestCell(comsec_tag_cell);
+//    TestKeyCell(comsec_key_cell_3);
+//    TestCell(comsec_tag_cell);
+//    TestKeyCell(comsec_key_cell_4);
+//    TestCell(comsec_tag_cell);
+//    TestKeyCell(comsec_key_cell_5);
+//    TestCell(comsec_tag_cell);
+//    TestKeyCell(comsec_key_cell_6);
+
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+
+  // Send Cold Start MAN cells
+    TestCell(coldstart_tag_cell);
+    TestCell(transec_cell_cold);
+
+// Send hopset and transec cells
+    TestCell(hopset_cell_Chan1_CA);
+    TestCell(transec_cell_1);
+
+    TestCell(hopset_cell_Chan2_CA);
+    TestCell(transec_cell_2);
+
+    TestCell(hopset_cell_Chan3_CA);
+    TestCell(transec_cell_3);
+
+    TestCell(hopset_cell_Chan4_CA);
+    TestCell(transec_cell_4);
+
+    TestCell(hopset_cell_Chan5_CA);
+    TestCell(transec_cell_5);
+
+    TestCell(hopset_cell_Chan6_CA);
+    TestCell(transec_cell_6);
+
+  // Send Type 3 TOD and Single Channel
+    TestCell(TOD_cell);
+    TestCell(single_channel_CA);
+  
+  // Send lockout cells
+    TestCell(lockout1_CA);
+    TestCell(lockout2_CA);
+    TestCell(lockout3_CA);
+    TestCell(lockout4_CA);
+
+    TestCell(lockout5_CA);
+    TestCell(lockout6_CA);
+    TestCell(lockout7_CA);
+    TestLastCell(lockout8_CA);
+
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestLastCell(no_fill_tag_cell);
+  
+    delay(500);
+    EndFill();
+    delay(500);
+    ReleaseBus();
+  
+    Serial.println("Type3CA No TEK Done !!!!");
+    delay(8000);
+}
+
+void Type2CA()
+{
+    char Equipment = TIMEOUT;
+    Serial.println("**********Starting Type2CA Fill***********");
+    AcquireBusType23();
+    Equipment = TIMEOUT;
+    while(Equipment == TIMEOUT)
+    {
+      delay(2000);
+      Serial.println("SendQuery");
+      StartHandshake();
+      SendQuery(QUERY_TYPE3);
+      Equipment = GetEquipmentType();
+      EndHandshake();
+    }
+
+    Serial.println("WaitFirstReq");
+    WaitFirstReq();      
+
+    Serial.println("Sending Type2CA Fill !!!!");
+
+// Send KeyTag and KeyData  Cells 
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_1);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_2);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_3);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_4);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_5);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_6);
+
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+
+// Send Cold Start MAN cells
+    TestCell(coldstart_tag_cell);
+    TestCell(transec_cell_cold);
+
+  // Send hopset and transec cells
+    TestCell(hopset_cell_Chan1_CA);
+    TestCell(transec_cell_1);
+
+    TestCell(hopset_cell_Chan2_CA);
+    TestCell(transec_cell_2);
+
+    TestCell(hopset_cell_Chan3_CA);
+    TestCell(transec_cell_3);
+
+    TestCell(hopset_cell_Chan4_CA);
+    TestCell(transec_cell_4);
+
+    TestCell(hopset_cell_Chan5_CA);
+    TestCell(transec_cell_5);
+
+    TestCell(hopset_cell_Chan6_CA);
+    TestCell(transec_cell_6);
+
+// Send Type 3 TOD and Single Channel
+//    TestCell(TOD_cell);
+//    TestCell(single_channel_CA);
+  
+  // Send lockout cells
+//    TestCell(lockout1_CA);
+//    TestCell(lockout2_CA);
+//    TestCell(lockout3_CA);
+//    TestCell(lockout4_CA);
+
+//    TestCell(lockout5_CA);
+//    TestCell(lockout6_CA);
+//    TestCell(lockout7_CA);
+//    TestLastCell(lockout8_CA);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestLastCell(no_fill_tag_cell);
+  
+    delay(500);
+    EndFill();
+    delay(500);
+    ReleaseBus();
+  
+    Serial.println("Type2CA Done !!!!");
+    delay(8000);
+}
+
+
+void Type2CAColdStart()
+{
+    char Equipment = TIMEOUT;
+    Serial.println("**********Starting Type2CA Cold Start Fill***********");
+    AcquireBusType23();
+    Equipment = TIMEOUT;
+    while(Equipment == TIMEOUT)
+    {
+      delay(2000);
+      Serial.println("SendQuery");
+      StartHandshake();
+      SendQuery(QUERY_TYPE3);
+      Equipment = GetEquipmentType();
+      EndHandshake();
+    }
+
+    Serial.println("WaitFirstReq");
+    WaitFirstReq();      
+
+    Serial.println("Sending Type2CA Cold Start Fill !!!!");
+
+// Send KeyTag and KeyData  Cells 
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_1);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_2);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_3);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_4);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_5);
+    TestCell(comsec_tag_cell);
+    TestKeyCell(comsec_key_cell_6);
+
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+//    TestCell(no_fill_tag_cell);
+
+// Send Cold Start MAN cells
+    TestCell(coldstart_tag_cell);
+    TestCell(transec_cell_cold);
+
+  // Send hopset and transec cells
+//    TestCell(hopset_cell_Chan1_CA);
+//    TestCell(transec_cell_1);
+//    TestCell(hopset_cell_Chan2_CA);
+//    TestCell(transec_cell_2);
+//    TestCell(hopset_cell_Chan3_CA);
+//    TestCell(transec_cell_3);
+//    TestCell(hopset_cell_Chan4_CA);
+//    TestCell(transec_cell_4);
+//    TestCell(hopset_cell_Chan5_CA);
+//    TestCell(transec_cell_5);
+//    TestCell(hopset_cell_Chan6_CA);
+//    TestCell(transec_cell_6);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+
+// Send Type 3 TOD and Single Channel
+//    TestCell(TOD_cell);
+//    TestCell(single_channel_CA);
+  
+  // Send lockout cells
+//    TestCell(lockout1_CA);
+//    TestCell(lockout2_CA);
+//    TestCell(lockout3_CA);
+//    TestCell(lockout4_CA);
+
+//    TestCell(lockout5_CA);
+//    TestCell(lockout6_CA);
+//    TestCell(lockout7_CA);
+//    TestLastCell(lockout8_CA);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestCell(no_fill_tag_cell);
+    TestLastCell(no_fill_tag_cell);
+  
+    delay(500);
+    EndFill();
+    delay(500);
+    ReleaseBus();
+  
+    Serial.println("Type2CA Cold Start Done !!!!");
+    delay(8000);
+}
 
 void Type2Any()
 {
@@ -1439,7 +2023,7 @@ void Type3NoTEK()
 {
     char Equipment = TIMEOUT;
     
-    Serial.println("**********Starting FullType3 No TEK Fill***********");
+    Serial.println("**********Starting Type3 No TEK Fill***********");
     AcquireBusType23();
     Equipment = TIMEOUT;
     while(Equipment == TIMEOUT)
@@ -1455,7 +2039,7 @@ void Type3NoTEK()
     Serial.println("WaitFirstReq");
     WaitFirstReq();      
 
-    Serial.println("Sending FullType3 No TEK Fill !!!!");
+    Serial.println("Sending Type3 No TEK Fill !!!!");
 
 // Send KeyTag and KeyData  Cells 
 //    TestCell(comsec_tag_cell);
@@ -1523,7 +2107,7 @@ void Type3NoTEK()
     delay(500);
     ReleaseBus();
   
-    Serial.println("FullType3 No TEK Done !!!!");
+    Serial.println("Type3 No TEK Done !!!!");
     delay(8000);
 }
 
@@ -1532,7 +2116,7 @@ void Type3ColdStart()
 {
     char Equipment = TIMEOUT;
     
-    Serial.println("**********Starting FullType3 ColdStart Fill***********");
+    Serial.println("**********Starting Type3 ColdStart Fill***********");
     AcquireBusType23();
     Equipment = TIMEOUT;
     while(Equipment == TIMEOUT)
@@ -1548,7 +2132,7 @@ void Type3ColdStart()
     Serial.println("WaitFirstReq");
     WaitFirstReq();      
 
-    Serial.println("Sending FullType3 Cold Start Fill !!!!");
+    Serial.println("Sending Type3 Cold Start Fill !!!!");
 
 // Send KeyTag and KeyData  Cells 
     TestCell(comsec_tag_cell);
@@ -1601,18 +2185,18 @@ void Type3ColdStart()
   delay(500);
   ReleaseBus();
   
-  Serial.println("FullType3 ColdStart Done !!!!");
+  Serial.println("Type3 ColdStart Done !!!!");
   delay(8000);
 }
 
 
 void Type1TEK1()
 {
-   Serial.println("**********Starting FullType1 TEK1 Fill***********");
+   Serial.println("**********Starting Type1 TEK1 Fill***********");
    AcquireBusType1();
    Serial.println("WaitFirstReq");
    WaitFirstReq();
-   Serial.println("Sending FullType1 TEK1 Fill !!!!");
+   Serial.println("Sending Type1 TEK1 Fill !!!!");
 
     TestKeyCell(comsec_key_cell_1);
     delay(500);
@@ -1620,19 +2204,19 @@ void Type1TEK1()
     delay(500);
     ReleaseBus();
     
-    Serial.println("FullType1 TEK1 Done !!!!");
+    Serial.println("Type1 TEK1 Done !!!!");
 
     delay(8000);
 }
 
 void Type1TEK2()
 {
-   Serial.println("**********Starting FullType1 TEK2 Fill***********");
+   Serial.println("**********Starting Type1 TEK2 Fill***********");
    AcquireBusType1();
    Serial.println("WaitFirstReq");
    WaitFirstReq();
 
-   Serial.println("Sending FullType1 TEK2 Fill !!!!");
+   Serial.println("Sending Type1 TEK2 Fill !!!!");
 
     TestKeyCell(comsec_key_cell_2);
     delay(500);
@@ -1640,18 +2224,18 @@ void Type1TEK2()
     delay(500);
     ReleaseBus();
     
-    Serial.println("FullType1 TEK2 Done !!!!");
+    Serial.println("Type1 TEK2 Done !!!!");
     delay(8000);
 }
 
 void Type1TEK3()
 {
-   Serial.println("**********Starting FullType1 TEK3 Fill***********");
+   Serial.println("**********Starting Type1 TEK3 Fill***********");
    AcquireBusType1();
    Serial.println("WaitFirstReq");
    WaitFirstReq();
 
-   Serial.println("Sending FullType1 TEK3 Fill !!!!");
+   Serial.println("Sending Type1 TEK3 Fill !!!!");
 
     TestKeyCell(comsec_key_cell_3);
     delay(500);
@@ -1659,7 +2243,27 @@ void Type1TEK3()
     delay(500);
     ReleaseBus();
     
-    Serial.println("FullType1 TEK3 Done !!!!");
+    Serial.println("Type1 TEK3 Done !!!!");
+    delay(8000);
+}
+
+
+void Type1KEK()
+{
+   Serial.println("**********Starting Type1 KEK Fill***********");
+   AcquireBusType1();
+   Serial.println("WaitFirstReq");
+   WaitFirstReq();
+
+   Serial.println("Sending Type1 KEK Fill !!!!");
+
+    TestKeyCell(comsec_key_cell_6);
+    delay(500);
+    EndFill();
+    delay(500);
+    ReleaseBus();
+    
+    Serial.println("Type1 KEK Done !!!!");
     delay(8000);
 }
 
