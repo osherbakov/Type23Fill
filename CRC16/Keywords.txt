@@ -1,0 +1,30 @@
+#######################################
+# Syntax Coloring Map for CRC16
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+CRC16	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+ini	KEYWORD2
+nxt	KEYWORD2
+blk	KEYWORD2
+appnd	KEYWORD2
+crc	KEYWORD2
+chk	KEYWORD2
+active	KEYWORD2
+overflow	KEYWORD2
+library_version	KEYWORD2
+enable_timer0	KEYWORD2
+flush	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+

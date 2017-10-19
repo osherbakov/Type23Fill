@@ -15,7 +15,7 @@ const byte   PIN_F = 6;
 //--------------------------------------------------------------
 const int   tM = 50;    
 const int   tA = 50;
-const int   tE = 500;    // REQ -> Fill
+const int   tE = 100;    // REQ -> Fill
 const int   tZ = 500;    // End -> New Fill
 
 //--------------------------------------------------------------
@@ -500,22 +500,33 @@ void ReleaseBus()
 
 void PrintCell(byte *cell)
 {
+  CRC  calc_crc;
+  unsigned char crc_res;
+    
   Serial.print("Send Cell:");
   for(int i = 0; i < 15; i++)
   {
       Serial.print(" 0x");Serial.print(cell[i], HEX);
   }      
   Serial.print(" CRC: 0x");
-  Serial.println(cell[15], HEX);
+  Serial.print(cell[15], HEX);
+  calc_crc.ini();
+  calc_crc.blk(cell, 15);
+  crc_res = calc_crc.crc() & 0x00FF;
+  Serial.print(" (TRK:0x");
+  Serial.print(crc_res, HEX);
+  Serial.print(" TEK:0x");
+  Serial.print(crc_res ^ 0xFF, HEX);
+  Serial.println(")");
 }
 
 signed char TestKeyCell(byte *cell)
 {
-  CRC  cacl_crc;
+  CRC  calc_crc;
   signed char Result = 0;
 
-  cacl_crc.ini();
-  cacl_crc.appnd(cell, 16);
+  calc_crc.ini();
+  calc_crc.appnd(cell, 16);
   cell[15] ^= 0xFF;
   
   PrintCell(cell); 
@@ -526,11 +537,11 @@ signed char TestKeyCell(byte *cell)
 
 signed char TestLastKeyCell(byte *cell)
 {
-  CRC  cacl_crc;
+  CRC  calc_crc;
   signed char Result = 0;
 
-  cacl_crc.ini();
-  cacl_crc.appnd(cell, 16);
+  calc_crc.ini();
+  calc_crc.appnd(cell, 16);
   cell[15] ^= 0xFF;
   
   PrintCell(cell); 
@@ -541,11 +552,11 @@ signed char TestLastKeyCell(byte *cell)
 
 signed char TestCell(byte *cell)
 {
-  CRC  cacl_crc;
+  CRC  calc_crc;
   signed char Result = OK;
 
-  cacl_crc.ini();
-  cacl_crc.appnd(cell, 16);
+  calc_crc.ini();
+  calc_crc.appnd(cell, 16);
   
   for(int i = 0; i < 256; i++)
   {
@@ -571,11 +582,11 @@ signed char TestCell(byte *cell)
 
 signed char TestLastCell(byte *cell)
 {
-  CRC  cacl_crc;
+  CRC  calc_crc;
   signed char Result = OK;
 
-  cacl_crc.ini();
-  cacl_crc.appnd(cell, 16);
+  calc_crc.ini();
+  calc_crc.appnd(cell, 16);
   
   for(int i = 0; i < 256; i++)
   {
@@ -1245,6 +1256,14 @@ byte loadset_type2[22][16] = {
 		{ 0x7E, 0x01, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0x1F }  // L8
 };
 
+unsigned char non_icom_fill[4][16] = {
+    { 0x89, 0x2C, 0x00, 0xA8, 0xF0, 0x81, 0x78, 0xA0, 0xB8, 0x01, 0x66, 0xC3, 0x1F, 0x53, 0x9C, 0xAD }, 
+    { 0x03, 0x9A, 0x3C, 0xFF, 0xE7, 0x63, 0x80, 0x37, 0x7C, 0x0F, 0xF4, 0x10, 0x7F, 0x8C, 0xFF, 0x2A },
+    { 0x06, 0x10, 0x19, 0xA1, 0x3E, 0x03, 0xEA, 0xC4, 0xCF, 0x05, 0x3A, 0xC7, 0x2F, 0x53, 0xC3, 0xA9 },
+    { 0x3C, 0xC3, 0x70, 0xE0, 0xE5, 0x53, 0x80, 0x2A, 0x12, 0x15, 0xA7, 0x91, 0xB5, 0xA5, 0xDD, 0xA7 }
+};
+
+
 
 
 //
@@ -1437,20 +1456,21 @@ void loop()
 
 //	Type2Any();
 
-	  Type3CA();
+//	  Type3CA();
 //    Type2CAColdStart();
 
 //    Type1TEK1();
 //    Type1TEK2();
 //    Type1TEK3();
     
-    Type3CANoTEK();
+//    Type3CANoTEK();
 //    Type1KEK();
 
+    NonIcomFill();
+    ESet1();
+    TransecCh1();
     
 //  Type2NoTEK();
-//  ESet1();
-//  Transec();
   
   while(1)
   {
@@ -1853,6 +1873,34 @@ void Type2CAColdStart()
     Serial.println("Type2CA Cold Start Done !!!!");
     delay(8000);
 }
+
+
+void NonIcomFill()
+{
+    int i;
+    char Equipment = TIMEOUT;
+    Serial.println("**********Starting NonIcomFill Fill***********");
+    AcquireBusType1();
+
+    Serial.println("WaitFirstReq");
+    WaitFirstReq();      
+
+    Serial.println("Sending NonIcomFill Fill !!!!");
+
+    for(i = 0; i < 3; i++) {
+      TestAnyCell(non_icom_fill[i]);
+    }
+    TestLastAnyCell(non_icom_fill[i]);
+    
+  delay(500);
+    EndFill();
+    delay(500);
+    ReleaseBus();
+  
+    Serial.println("NonIcomFill Done !!!!");
+    delay(8000);
+}
+
 
 void Type2Any()
 {
@@ -2276,11 +2324,9 @@ void ESet1()
 
    Serial.println("Sending ESet 1 Fill !!!!");
 
-    TestCell(hopset_cell_111);
-    TestCell(transec_cell_cold);
+    TestCell(coldstart_tag_cell);
+    TestLastCell(transec_cell_cold);
 
-    delay(500);
-    EndFill();
     delay(500);
     ReleaseBus();
     
@@ -2288,30 +2334,22 @@ void ESet1()
     delay(8000);
 }
 
-void Transec()
+void TransecCh1()
 {
-   Serial.println("**********Starting Transec ONLY Fill***********");
+   Serial.println("**********Starting TransecCh1 ONLY Fill***********");
    AcquireBusType1();
    Serial.println("WaitFirstReq");
    WaitFirstReqType1();      
 
-   Serial.println("Sending Transec ONLY Fill !!!!");
+   Serial.println("Sending TransecCh1 ONLY Fill !!!!");
 
-    TestCell(transec_cell_cold);
-    TestCell(transec_cell_cold);
-    TestCell(transec_cell_cold);
-    TestCell(transec_cell_cold);
-    TestCell(transec_cell_cold);
-    TestCell(transec_cell_cold);
-    TestCell(transec_cell_cold);
-    TestCell(transec_cell_cold);
+    TestCell(hopset_cell_111);
+    TestLastCell(transec_cell_1);
 
-    delay(500);
-    EndFill();
     delay(500);
     ReleaseBus();
     
-    Serial.println("Transec ONLY  Done !!!!");
+    Serial.println("TransecCh1 ONLY  Done !!!!");
     delay(8000);
 }
 
