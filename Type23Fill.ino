@@ -743,7 +743,7 @@ byte comsec_key_cell_6[] =
    0x05, 0xb1, 0x47, 0x3b, 0x2b, 0xca, 0x5f, 0x3a  // CRC
 };
 
-
+// The KEK is equal to COMSEC Key 06
 byte comsec_key_kek[] =
 {
    0x47, 0xd2, 0x13, 0xee, 0x77, 0xcd, 0xff, 0x49, 
@@ -1456,19 +1456,19 @@ void loop()
 
 //	Type2Any();
 
-//	  Type3CA();
-//    Type2CAColdStart();
+	  Type3CA();
+    Type2CAColdStart();
+    ESet1CAColdStart();
+    Type1KEK();
 
-//    Type1TEK1();
+    Type1TEK1();
 //    Type1TEK2();
 //    Type1TEK3();
     
-//    Type3CANoTEK();
-//    Type1KEK();
+    Type3CANoTEK();
 
-    NonIcomFill();
-    ESet1();
-    TransecCh1();
+//    NonIcomFill();
+//    TransecCh1();
     
 //  Type2NoTEK();
   
@@ -2246,7 +2246,7 @@ void Type1TEK1()
    WaitFirstReq();
    Serial.println("Sending Type1 TEK1 Fill !!!!");
 
-    TestKeyCell(comsec_key_cell_1);
+    TestLastKeyCell(comsec_key_cell_1);
     delay(500);
     EndFill();
     delay(500);
@@ -2266,7 +2266,7 @@ void Type1TEK2()
 
    Serial.println("Sending Type1 TEK2 Fill !!!!");
 
-    TestKeyCell(comsec_key_cell_2);
+    TestLastKeyCell(comsec_key_cell_2);
     delay(500);
     EndFill();
     delay(500);
@@ -2285,7 +2285,7 @@ void Type1TEK3()
 
    Serial.println("Sending Type1 TEK3 Fill !!!!");
 
-    TestKeyCell(comsec_key_cell_3);
+    TestLastKeyCell(comsec_key_cell_3);
     delay(500);
     EndFill();
     delay(500);
@@ -2305,7 +2305,7 @@ void Type1KEK()
 
    Serial.println("Sending Type1 KEK Fill !!!!");
 
-    TestKeyCell(comsec_key_cell_6);
+    TestLastKeyCell(comsec_key_cell_6);
     delay(500);
     EndFill();
     delay(500);
@@ -2315,7 +2315,7 @@ void Type1KEK()
     delay(8000);
 }
 
-void ESet1()
+void ESet1CAColdStart()
 {
    Serial.println("**********Starting ESet 1 Fill***********");
    AcquireBusType1();
